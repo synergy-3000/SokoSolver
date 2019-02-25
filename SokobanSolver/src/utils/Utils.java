@@ -1,16 +1,8 @@
 package utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 import setup.GraphCreator;
 import setup.Maze;
-import setup.MazePosition;
 import setup.Reader;
-import solver.BoxPush;
-import solver.MyMazePosition;
-import solver.SokoBoxPush;
-import solver.SokoBoxPush.Direction;
 
 public class Utils {
 	//static 
@@ -117,16 +109,16 @@ public class Utils {
 			for (int j=0; j<numCols; j++) {
 				String toAdd = "";
 				if(maze.isWall(i,j)) {
-					toAdd = "#";
+					toAdd = "##";
 				}
 				else if(maze.isOutsideMaze(i,j)) {
-					toAdd = " ";
+					toAdd = "  ";
 				}
 				else {
 					toAdd = String.valueOf(idx);
 					idx += 1;
 				}
-				if (toAdd.length() == 1) toAdd = "+" + toAdd;
+				if (toAdd.length() == 1) toAdd = " " + toAdd;
 				strRow = strRow + toAdd;
 			}
 			System.out.println(strRow);
@@ -134,7 +126,7 @@ public class Utils {
 	}
 	// TODO This method has been replaced by SokoDeadPositionFinder.getPathToGoal()
 	//
-	public static ArrayList<Direction> getPath(MazePosition from, MazePosition to, int[][] distances) {
+	/*public static ArrayList<Direction> getPath(MazePosition from, MazePosition to, int[][] distances) {
 		
 		ArrayList<Direction> path = new ArrayList<Direction>();
 		MazePosition curPos = new MyMazePosition(to);
@@ -182,8 +174,8 @@ public class Utils {
 			}
 		}
 		return path;
-	}
-	private static boolean isNext(int curDist, Direction pushDirn, MazePosition mpBox, int[][]distances) {
+	}*/
+	/*private static boolean isNext(int curDist, Direction pushDirn, MazePosition mpBox, int[][]distances) {
 		boolean retVal = false;
 		int row = mpBox.getRow();
 		int col = mpBox.getCol();
@@ -207,5 +199,5 @@ public class Utils {
 			maze.setBoxLocations(mcOldBoxLocs);
 		}
 		return retVal;
-	}
+	}*/
 }

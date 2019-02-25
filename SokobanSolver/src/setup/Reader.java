@@ -13,6 +13,7 @@ import java.util.LinkedList;
 
 import org.junit.jupiter.api.function.Executable;
 
+import gui.Direction;
 import solver.MyMazePosition;
 import utils.Utils;
 
@@ -35,8 +36,8 @@ public class Reader implements MazeReader {
 	MazeCell mazeCells[][];
 	Maze maze = null;
 	ArrayList<MazePosition> goalSquares;
-	
-	boolean[] isGoalNode; // true if node id = goal node
+	int[] player;    // Player's row, column position
+	int[][] boxes;   // Box row and column positions
 
 	
 	char[][] mazeChars;
@@ -46,6 +47,9 @@ public class Reader implements MazeReader {
 			myReader = new Reader();
 		}
 		return myReader;
+	}
+	private Reader() {
+		player = new int[2];
 	}
 	@Override
 	public Maze readMaze(File file) {
@@ -92,12 +96,32 @@ public class Reader implements MazeReader {
 				System.arraycopy(aLine.toCharArray(), 0, mazeChars[iRow], 0, aLine.length());
 				iRow++;
 			}
+			ArrayList<int[]> boxLocs = new ArrayList<int[]>();
+			int[] coord;
+			char ch;
 			for (int r=0; r<numRows; r++) {
-				for (int c=0; c<numCols; c++) {
-					if ( (mazeChars[r][c] == GOAL_SQUARE) || (mazeChars[r][c] == BOX_ON_GOAL)) {
+				for (int c=0; c<numCols; c++) { 
+					ch = mazeChars[r][c];
+					if (ch == PLAYER) {
+						player[0] = r;
+						player[1] = c;
+					}
+					if ( (ch == BOX) || (ch == BOX_ON_GOAL)) {
+						coord = new int[2];
+						coord[0] = r;
+						coord[1] = c;
+						boxLocs.add(coord);
+					}
+					if ( (ch == GOAL_SQUARE) || (ch == BOX_ON_GOAL)) {
 						goalSquares.add(new MyMazePosition(r,c));
 					}
 				}
+			}
+			boxes = new int[boxLocs.size()][];
+			int j=0;
+			for (int[] pos : boxLocs) {
+				boxes[j] = pos;
+				j += 1;
 			}
 			// Debug: print out Goal squares
 			System.out.println("Goal Squares");
@@ -109,6 +133,7 @@ public class Reader implements MazeReader {
 				System.out.println(String.valueOf(mazeChars[i]));
 			}
 			maze = new MyMaze();
+			maze.setPlayerLocation(player);
 		}
 		return maze;
 	}
@@ -184,9 +209,11 @@ public class Reader implements MazeReader {
 	}
 	class MyMaze implements Maze {
 		
-		MazePosition playerPosition = null;
-		ArrayList<MazePosition> boxes = null;
-		
+		int[] playerRowCol = new int[2];
+		boolean[] isGoalNode; // true if node id = goal node
+		int[] from = new int[2];
+		int[] to = new int[2];
+		//TODO change getDistanes(..) so it doesn't keep allocating a new array each call
 		@Override
 		public int[][] getDistances(int startRow, int startCol) {
 			if(!inArrayBounds(startRow, startCol)) {
@@ -293,62 +320,18 @@ public class Reader implements MazeReader {
 		}
 
 		@Override
-		public MazePosition getPlayerLocation() {
-			if (playerPosition == null) {
-				for (int i=0; i<numRows; i++) {
-					for (int j=0; j<numCols; j++) {
-						if (mazeChars[i][j] == PLAYER) {
-							playerPosition = new MyMazePosition(i,j);
-							break;
-						}
-					}
-				}
-			}
-			return playerPosition;
+		/* Returns row and column location of player
+		 * (non-Javadoc)
+		 * @see setup.Maze#getPlayerLocation()
+		 */
+		public void getPlayerLocation(int[] coord) {
+			coord[0] = playerRowCol[0];
+			coord[1] = playerRowCol[1];
 		}
 
 		@Override
-		public MazePosition[] getBoxLocations() {
-			if (boxes == null) {
-				boxes = new ArrayList<MazePosition>();
-				for (int r=0; r<numRows; r++) {
-					for (int c=0; c<numCols; c++) {
-						if (isBox(r,c)) {
-							boxes.add( new MyMazePosition(r,c));
-						}
-					}
-				}
-			}
-			
-			// Debug
-			System.out.println("getBoxLocations()");
-			for (MazePosition mp : boxes) {
-				System.out.println("Box locations: " + mp);
-			}
-			return boxes.toArray(new MazePosition[0]);
-		}
-
-		@Override
-		public void setBoxLocations(MazePosition[] mpBoxlocs) {
-			
-			int row,col;
-			MazePosition[] oldLocs = getBoxLocations();
-			
-			for (MazePosition mp : oldLocs) {
-				row = mp.getRow();
-				col = mp.getCol();
-				if (isGoalSquare(row, col)) {
-					mazeChars[row][col] = GOAL_SQUARE;  // Don't really need to do this but helpful when printing out maze
-				}
-				else {
-					mazeChars[mp.getRow()][mp.getCol()]  = SPACE_INSIDE_MAZE;
-				}
-			}
-			boxes.clear();
-			for (MazePosition mc : mpBoxlocs) {
-				boxes.add(mc);
-				mazeChars[mc.getRow()][mc.getCol()] = BOX;
-			}
+		public int[][] getBoxLocations() {
+			return boxes;
 		}
 
 		@Override
@@ -357,9 +340,9 @@ public class Reader implements MazeReader {
 		}
 
 		@Override
-		public void setPlayerLocation(MazePosition mpPlayer) {
-			playerPosition.setRow(mpPlayer.getRow());
-			playerPosition.setCol(mpPlayer.getCol());
+		public void setPlayerLocation(int[] newPos) {
+			playerRowCol[0] = newPos[0];
+			playerRowCol[1] = newPos[1];
 		}
 
 		@Override
@@ -408,6 +391,33 @@ public class Reader implements MazeReader {
 			
 			return isGoalNode;
 		}
+
+		@Override
+		public void moveBox(int row, int col, Direction dirn) {
+			setEmptyAt(row,col);
+			from[0] = row;
+			from[1] = col;
+			dirn.getToPosition(from, to);
+			setBoxAt(to[0],to[1]);
+
+			boolean updated = false;
+			for (int i=0; (i< boxes.length) && !updated; i++) {
+				if ( (row == boxes[i][0]) && (col == boxes[i][1]) ) {
+					boxes[i][0] = to[0];
+					boxes[i][1] = to[1];
+					updated = true;
+				}
+			}
+		}
+
+		@Override
+		public void movePlayer(Direction dirn) {
+			int pr = playerRowCol[0];
+			int pc = playerRowCol[1];
+			setEmptyAt(pr,pc);
+			from[0] = pr; from[1] = pc;
+			dirn.getToPosition(from, playerRowCol);
+ 		}
 	}
 	@Override
 	public Maze getMaze() {

@@ -36,4 +36,9 @@ public class PushBoxNode implements Node {
 		}
 		return found;
 	}
+
+	@Override
+	public void clearVisits() {
+		visited = false;
+	}
 }

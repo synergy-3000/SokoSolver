@@ -1,13 +1,14 @@
 package solver;
 
-import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.LinkedList;
 
+import gui.Direction;
 import setup.Graph;
-import setup.MazePosition;
+import setup.GraphCreator;
+import setup.Maze;
 import setup.Node;
 import utils.Utils;
 
@@ -26,14 +27,57 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 	int nNodes;
 
 	int[] nodeIds, pushes;
+	int[] parent;
 	int nPushes;
+	int[] toPos, fromPos;
+	
 
 	final int MAX_PUSHES = 50;
-
+	
+	private SokoDeadPositionFinder() {
+		toPos = new int[2];
+		fromPos = new int[2];
+	}
 	@Override
-	public MazePosition[] getDeadPositions(Graph graph) {
-		// TODO Auto-generated method stub
-		return null;
+	public int[] getDeadPositions(Graph graph, Maze maze) {
+		GraphCreator gc = GraphCreator.getGraphCreator();
+		
+		// For each empty square inside maze check that if a box placed in it could be pushed to a goal square
+		int id, pNode = -1;
+		boolean isDead;
+		ArrayList<Integer> deadPosns = new ArrayList<Integer>();
+		boolean[] goals = maze.getIsGoalNode();
+		int[] path;
+		Node[] nodes = graph.getNodes();
+		
+		for (Node node : nodes) {
+			
+			graph.clearVisits();
+			isDead = true;
+
+			// Have to find 2 opposite empty squares around square if box 
+			// can be pushed at all.
+			id = node.getId();
+			
+			// Did we start on a goal square ?
+			if (!goals[id]) {
+				if ( (pNode = gc.getPlayerNodeForPush(id, Direction.DOWN)) == -1 ) {
+					pNode = gc.getPlayerNodeForPush(id, Direction.LEFT);
+				}
+				if (pNode != -1) {
+					path = getPathToGoal(graph, id, goals, pNode);
+					isDead = (path == null);
+				}
+				if (isDead) deadPosns.add(id);
+			}
+		}
+		int[] retVal = new int[deadPosns.size()];
+		int i=0;
+		for (int dPosn : deadPosns) {
+			retVal[i] = dPosn;
+			i += 1;
+		}
+		return retVal;
 	}
 
 	@Override
@@ -44,15 +88,17 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 	 * @see solver.DeadPositionFinder#getPathToGoal(setup.Graph, solver.BoxPusher,
 	 * int, int, int)
 	 */
-	public int[] getPathToGoal(Graph graph, BoxPusher boxPusher, int fromNode, boolean[] isGoalNode, int playerNode) {
+	public int[] getPathToGoal(Graph graph, int fromNode, boolean[] isGoalNode, int playerNode) {
 
 		nPushes = 0;
+		nodes = graph.getNodes();
 		if (nodeIds == null) {
 			nodeIds = new int[MAX_PUSHES];
 			pushes = new int[MAX_PUSHES];
+			parent = new int[nodes.length*4];
 		}
 
-		nodes = graph.getNodes();
+		
 		nNodes = nodes.length;
 		int playerRow = graph.getNodeRow(playerNode);
 		int playerCol = graph.getNodeCol(playerNode);
@@ -81,8 +127,9 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 		pushes[nPushes++] = 0;
 		int boxRow = graph.getNodeRow(fromNode);
 		int boxCol = graph.getNodeCol(fromNode);
-
-		boxPusher.setBoxPosition(graph.getNodeRow(fromNode), graph.getNodeCol(fromNode));
+		parent[getHashCode(graph, fromNode, playerRow, playerCol)] = -1;
+		
+		int parentHash;
 
 		while (!queue.isEmpty() && !found) {
 
@@ -91,17 +138,15 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 			playerCol = pColQueue.poll();
 			int prevPush = nPushesQueue.poll();
 
-			// TODO boxPusher not required because the algorithm does not need a box to be
-			// placed in the maze
-			boxPusher.setBoxPosition(graph.getNodeRow(nodeId), graph.getNodeCol(nodeId));
 			boxRow = graph.getNodeRow(nodeId);
 			boxCol = graph.getNodeCol(nodeId);
 
 			int[] neighbours = nodes[nodeId].visit(playerRow, playerCol);
-
-			// visits[nodeId] += 1;
-
-			for (int neighbour : neighbours) {
+			int neighbour;
+			parentHash = getHashCode(graph, nodeId, playerRow, playerCol);
+			
+			for (int i=0; (i<neighbours.length) && !found; i++) {
+				neighbour = neighbours[i];
 				if (isGoalNode[neighbour])
 					found = true;
 
@@ -111,23 +156,12 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 					if (!(nPushes < nodeIds.length))
 						reallocateArrays();
 					nodeIds[nPushes] = nodes[neighbour].getId();
+					
+					parent[getHashCode(graph, nodeIds[nPushes], boxRow, boxCol)] = parentHash;
 					pushes[nPushes] = pushes[prevPush] + 1;
 
 					visits[neighbour] += 1;
 
-					// TODO Remove pushDistances array. It is replaced by the arrays above -
-					// nodeIds[], pushes[]
-
-					// pushDistances[neighbour] = pushDistances[nodeId] + 1;
-					// 1st Visit ?
-					if (pushDistances[neighbour] == -1) {
-						pushDistances[neighbour] = Math.max(pushDistances[nodeId], secondVisit[nodeId]) + 1;
-					}
-					// Must be 2nd visit
-					else {
-						secondVisit[neighbour] = Math.max(pushDistances[nodeId], secondVisit[nodeId]) + 1;
-					}
-					// TODO End Remove
 					queue.add(neighbour);
 					pRowQueue.add(boxRow);
 					pColQueue.add(boxCol);
@@ -136,102 +170,21 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 				}
 			}
 		}
-		// TODO Remove the following code
-		Utils.printArray(nodeIds, "nodeIds", nPushes);
-		Utils.printArray(pushes, "pushes", nPushes);
-		// Debug: Print out pushDistances
-		System.out.println("found = " + found);
-		String outStr = "Node Ids =        [";
-		int i;
-		for (i = 0; i < pushDistances.length - 1; i++) {
-			if ((i < 10) && (i >= 0))
-				outStr += "0";
-			outStr += Integer.toString(i) + ", ";
-		}
-		if ((i < 10) && (i > 0))
-			outStr += "0";
-		outStr += Integer.toString(i) + "]";
-		System.out.println(outStr);
-
-		Utils.printArray(pushDistances, "pushDistances", pushDistances.length);
-
-		Utils.printArray(secondVisit, "secondVisit", secondVisit.length);
-
-		System.out.println("visits = " + Arrays.toString(visits));
-
-		// Sort pushDistances array
-		Integer[] nodeId = new Integer[pushDistances.length * 2];
-		for (i = 0; i < nodeId.length; i++) {
-			nodeId[i] = Integer.valueOf(i);
-		}
-		// Arrays.sort(nodeId, new DistancesComparator(pushDistances));
-		// Tack on secondVisit[]
-		int[] pushStep = Arrays.copyOf(pushDistances, pushDistances.length * 2);
-		for (i = pushDistances.length; i < pushStep.length; i++) {
-			pushStep[i] = secondVisit[i - pushDistances.length];
-		}
-		Arrays.sort(nodeId, new DistancesComparator(pushStep));
-
-		// Print out sorted array
-		outStr = "nodeId =   [";
-		int modNodeId;
-		for (i = 0; i < nodeId.length - 1; i++) {
-			modNodeId = nodeId[i] % nNodes;
-			if ((modNodeId < 10) && (modNodeId >= 0))
-				outStr += "0";
-			outStr += Integer.toString(modNodeId) + ", ";
-		}
-		outStr += (nodeId[i] % nNodes) + "]";
-		System.out.println(outStr);
-
-		outStr = "sorted =   [";
-		for (i = 0; i < nodeId.length - 1; i++) {
-			if ((pushStep[nodeId[i]] < 10) && (pushStep[nodeId[i]] >= 0))
-				outStr += "0";
-			outStr += Integer.toString(pushStep[nodeId[i]]) + ", ";
-		}
-		outStr += pushStep[nodeId[i]] + "]";
-		System.out.println(outStr);
-
-		// TODO End of remove code
+		
 		if (found) {
-			// Determine path (new algorithm)
-			Deque<Integer> stack = new ArrayDeque<Integer>();
-			int indexPos = nPushes - 1;
-			// Node curNode = getNode(nodeId, indexPos);
-			Node curNode = nodes[nodeIds[indexPos]];
-			int step = pushes[indexPos];
-			System.out.println("step = " + step);
-			int[] path = new int[step + 1];
-			path[step] = curNode.getId();
-			stack.push(curNode.getId());
-			indexPos--;
-
-			while ((indexPos >= 0) && (step > 0)) {
-				Node nextNode = nodes[nodeIds[indexPos]];
-				if (isNextNode(pushes, nextNode, curNode, indexPos, step)) {
-					curNode = nextNode;
-					step -= 1;
-					stack.push(curNode.getId());
-					path[step] = curNode.getId();
-				}
-				indexPos--;
+			int nodeId = nodeIds[nPushes-1];
+			int step = pushes[nPushes-1];
+			int[] path = new int[step+1];
+			path[step] = nodeId;
+			step -= 1;
+			parentHash = parent[getHashCode(graph, nodeId, boxRow, boxCol)];
+			
+			while (parentHash != -1) {
+				path[step] = idFromHash(parentHash);
+				step -= 1;
+				parentHash = parent[parentHash];
 			}
-			// Print path
-			System.out.println("step = " + step);
-			if (step == 0) {
-				System.out.println("step = 0");
-				outStr = "[ ";
-
-				while (!stack.isEmpty()) {
-					outStr += stack.pop();
-					if (!stack.isEmpty())
-						outStr += ", ";
-					else
-						outStr += "]";
-				}
-				System.out.println(outStr);
-			}
+			
 			Utils.printArray(path, "path", path.length);
 			Utils.printMaze();
 
@@ -240,7 +193,35 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 			return null;
 		}
 	}
-
+	private int getHashCode(Graph graph, int nodeId, int playerRow, int playerCol) {
+		
+		// Direction from player to node
+		fromPos[0] = graph.getNodeRow(nodeId);
+		fromPos[1]= graph.getNodeCol(nodeId);
+		toPos[0] = playerRow;
+		toPos[1] = playerCol;
+		
+		Direction dirn = Direction.getDirection(fromPos, toPos);
+		int dirnNum = 0;
+		switch(dirn) {
+		case UP:
+			dirnNum = 0;
+			break;
+		case DOWN:
+			dirnNum = 1;
+			break;
+		case LEFT:
+			dirnNum = 2;
+			break;
+		case RIGHT:
+			dirnNum = 3;
+			break;
+		}
+		return (nodeId * 4) + dirnNum; 
+	}
+	private int idFromHash(int hash) {
+		return hash/4;
+	}
 	private void reallocateArrays() {
 		System.out.println("reallocateArrays()");
 		nodeIds = Arrays.copyOf(nodeIds, nodeIds.length + MAX_PUSHES);

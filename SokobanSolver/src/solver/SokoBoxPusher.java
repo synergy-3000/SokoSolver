@@ -2,6 +2,7 @@ package solver;
 
 import setup.Maze;
 
+// TODO this class not needed i think
 public class SokoBoxPusher implements BoxPusher {
 
 	private Maze maze;

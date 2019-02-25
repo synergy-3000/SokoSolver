@@ -110,5 +110,8 @@ public class PushBoxSoftNode extends PushBoxNode implements Node {
 		
 		
 	}
-	
+	@Override
+	public void clearVisits() {
+		Arrays.fill(visited, false);
+	}
 }

@@ -57,8 +57,9 @@ class TestReader {
 	void testReadMaze() {
 		file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
 		Maze maze = aReader.readMaze(file);
-		MazePosition playerCell = maze.getPlayerLocation();
-		String outStr = String.format("Player located at (%d,%d)", playerCell.getRow(), playerCell.getCol()); 
+		int[] playerCell = new int[2];
+		maze.getPlayerLocation(playerCell);
+		String outStr = String.format("Player located at (%d,%d)", playerCell[0], playerCell[1]); 
 		System.out.println(outStr);
 		assert(maze != null);
 		

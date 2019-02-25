@@ -2,7 +2,6 @@ package gui;
 
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 
@@ -63,7 +62,7 @@ public class Person extends Figure implements GraphicObj {
 	
 	
 
-	private SokoMove dirn;
+	private Direction dirn;
 	
 	// Reflection transform
 	AffineTransform reflect = new AffineTransform(-1, 0, 0, 1, 100, 0);
@@ -108,7 +107,7 @@ public class Person extends Figure implements GraphicObj {
 		rlegX = getX(this.rleg);
 		rlegY = getY(this.rleg);
 		
-		setDirection(SokoMove.UP);
+		setDirection(Direction.UP);
 		
 	}
 	private int[] getX(int[] idx) {
@@ -131,7 +130,7 @@ public class Person extends Figure implements GraphicObj {
 			reflected[i] = 100 - pts[i];
 		}
 	}
-	public void setDirection(SokoMove move) {
+	public void setDirection(Direction move) {
 		dirn = move;
 	}
 	@Override
@@ -152,7 +151,7 @@ public class Person extends Figure implements GraphicObj {
 			AffineTransform saveT = g.getTransform();
 			g.translate(dx,dy);
 			g.scale(getScale(), getScale());
-			if (dirn == SokoMove.LEFT) {
+			if (dirn == Direction.LEFT) {
 				g.transform(reflect);
 			}
 			// Head

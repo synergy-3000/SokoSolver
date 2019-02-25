@@ -1,8 +1,8 @@
 package solver;
 
+import gui.Direction;
 import setup.Maze;
 import setup.MazePosition;
-import solver.SokoBoxPush.Direction;
 
 public interface BoxPush {
 	public MazePosition getOldBoxPosition();

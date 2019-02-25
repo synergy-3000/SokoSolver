@@ -1,9 +1,9 @@
 package solver;
 
 import setup.Graph;
-import setup.MazePosition;
+import setup.Maze;
 
 public interface DeadPositionFinder {
-	public MazePosition[] getDeadPositions(Graph graph);
-	int[] getPathToGoal(Graph graph, BoxPusher boxPusher, int fromNode, boolean[] isGoalNode, int playerNode);
+	public int[] getDeadPositions(Graph graph, Maze maze);
+	int[] getPathToGoal(Graph graph, int fromNode, boolean[] isGoalNode, int playerNode);
 }

@@ -1,14 +1,8 @@
 package setup;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
-import solver.MyMazePosition;
-import solver.Region;
-import solver.SokoBoxPush.Direction;
+import gui.Direction;
 
 public class GraphCreator implements Graph {
 	
@@ -29,6 +23,8 @@ public class GraphCreator implements Graph {
 	
 	Maze maze;
 	
+	int[] fr, to, playerPos;
+	
 	private static GraphCreator graphCreator;
 	
 	public static GraphCreator getGraphCreator() {
@@ -37,6 +33,12 @@ public class GraphCreator implements Graph {
 		}
 		return graphCreator;
 	}
+	private GraphCreator() {
+		fr = new int[2];
+		to = new int[2];
+		playerPos = new int[2];
+		
+	}
 	public Graph createPushGraph(Maze maze) {
 		this.maze = maze;
 		int nMazeRows = maze.numRows();
@@ -44,7 +46,7 @@ public class GraphCreator implements Graph {
 		nNodes = 0;
 		nBoxes = 0;
 		
-		// initialization
+		// Assign an index for each empty square
 		ids = new int[nMazeRows][nMazeCols];
 		
 		for (int r=0; r < nMazeRows; r++) {
@@ -58,8 +60,9 @@ public class GraphCreator implements Graph {
 				}
 			}
 		}
-		MazePosition mpPlayer = maze.getPlayerLocation();
-		player = ids[mpPlayer.getRow()][mpPlayer.getCol()];
+		int[] mpPlayer = new int[2];
+		maze.getPlayerLocation(mpPlayer);
+		player = ids[mpPlayer[0]][mpPlayer[1]];
 		
 		boxes = new int[nBoxes];
 		nodeRows = new int[nNodes];
@@ -211,6 +214,46 @@ public class GraphCreator implements Graph {
 
 		return retVal;
 	}
+	/*
+	 * Calculates which directions are pushable for the box located at <code>boxRow,boxCol</code>
+	 * and player at playerrow, playercol and sets to true in canPush at the index of Direction.values().
+	 * pReachable[][] is the player reachable area ( >= 0 is reachable )
+	 */
+	public void getPushableDirections(int boxRow, int boxCol, boolean[] canPush, int[][] pReachable) {
+		int i=0;
+		for (Direction dirn : Direction.values()) {
+			canPush[i] = false;
+			getPositions(boxRow, boxCol, dirn, playerPos, to);
+			
+			// Player and 'to' square have to be empty
+			if (maze.isEmpty(to[ROW], to[COL]) && maze.isEmpty(playerPos[ROW], playerPos[COL])) {
+
+				// Player square has to be reachable
+				if ( pReachable[playerPos[ROW]][playerPos[COL]] >= 0 ) {
+					canPush[i] = true;
+				}
+			}
+			i += 1;
+		}
+	}
+	/* Returns the node for the player if push can be performed else -1
+	 *   
+	 */
+	public int getPlayerNodeForPush(int fromId, Direction pushDirn) {
+		int retVal = -1;
+		int toPos[] = new int[2];
+		int playerPos[] = new int[2];
+		int boxR = nodeRows[fromId];
+		int boxC = nodeColumns[fromId];
+		
+		getPositions(boxR, boxC, pushDirn, playerPos, toPos);
+		
+		if (maze.isEmpty(toPos[ROW], toPos[COL]) && maze.isEmpty(playerPos[ROW], playerPos[COL])) {
+			retVal = ids[playerPos[ROW]][playerPos[COL]];
+		}
+		return retVal;
+	}
+	
 	private Node createSoftNode(int toNodeIds[], int numFrom, int nodeId) {
 		
 		int playerPos[][] = new int[4][2];
@@ -355,7 +398,7 @@ public class GraphCreator implements Graph {
 		return String.format("(%d,%d)",row,col);
 	}
 	/* Return the player position and the destination position for the given
-	 * box position and push direction.
+	 * box position and push direction. All in row, column coordinates
 	 * 
 	 */
 	private void getPositions(int boxRow, int boxCol, Direction pushDirn, 
@@ -394,5 +437,11 @@ public class GraphCreator implements Graph {
 	@Override
 	public Node[] getNodes() {
 		return nodes;
+	}
+	@Override
+	public void clearVisits() {
+		for (Node node : nodes) {
+			node.clearVisits();
+		}
 	}
 }

@@ -3,6 +3,7 @@ package gui;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 
 public class Utils {
@@ -52,56 +53,6 @@ public class Utils {
 		public static GraphicObj makeOldWall() {
 			return new OldWall();
 		}
-}
-class Wall extends AbstractGraphicObj {
-	final int[] px = { 0, 50, 50, 0, 7, 7, 43, 43 };
-	final int[] py = { 0, 0,  50,50,43, 7, 7,  43 };
-	
-	int[] topEdgex = { px[0], px[1], px[6], px[5] };
-	int[] topEdgey = { py[0], py[1], py[6], py[5] };
-	Color colTopE = Color.WHITE;
-	
-	int[] rightEdgex = { px[1], px[2], px[7], px[6] };
-	int[] rightEdgey = { py[1], py[2], py[7], py[6] };
-	Color colRightE = Color.GRAY;
-	
-	int[] botEdgex = { px[3], px[4], px[7], px[2] };
-	int[] botEdgey = { py[3], py[4], py[7], py[2] };
-	Color colBotE = Color.DARK_GRAY;
-	
-	int[] leftEdgex = { px[0], px[5], px[4], px[3] };
-	int[] leftEdgey = { py[0], py[5], py[4], py[3] };
-	Color colLeftE = Color.LIGHT_GRAY;
-	
-	int[] centreSquarex = { px[5], px[6], px[7], px[4] };
-	int[] centreSquarey = { py[5], py[6], py[7], py[4] };
-	Color colCentreS = Color.GRAY;
-	
-	// Shapes
-	Color[] fillColors = { colTopE, colRightE, colBotE, colLeftE, colCentreS };
-	int[][] polyX = { topEdgex, rightEdgex, botEdgex, leftEdgex, centreSquarex };
-	int[][] polyY = { topEdgey, rightEdgey, botEdgey, leftEdgey, centreSquarey };
-	
-	Rectangle bounds = new Rectangle(0,0,50,50);
-	
-	Color darkerGray = new Color(100,100,100);
-	
-	@Override
-	public Rectangle getBounds() {
-		return bounds;
-	}
-
-	@Override
-	protected void render(Graphics2D g) {
-		for (int i=0; i<fillColors.length; i++) {
-			//g.setColor(Color.BLACK);
-			//g.drawPolygon(polyX[i], polyY[i], polyX[i].length);
-			g.setColor(fillColors[i]);
-			g.fillPolygon(polyX[i], polyY[i], polyX[i].length);
-		}
-		g.setColor(darkerGray);
-		g.drawLine(px[7], py[7], px[6], py[6]);
-	}
 }
 /*
  * Gray square patterned with white diamonds.

@@ -5,4 +5,5 @@ public interface Node {
 	public boolean visited(int playerRow, int playerCol);
 	public int[] visit(int playerRow, int playerCol);
 	public boolean canPushTo(int nodeId);
+	public void clearVisits();
 }
