@@ -12,6 +12,7 @@ public interface Maze {
 	public void getPlayerLocation(int[] coord);
 	public void setPlayerLocation(int[] pos);
 	public int[][] getBoxLocations();
+	public void setBoxLocations(int[][] coords);
 	public int numRows();
 	public int numCols();
 	public void setBoxAt(int row, int col);

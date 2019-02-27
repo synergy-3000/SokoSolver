@@ -6,7 +6,7 @@ import javax.swing.JPanel;
 
 import setup.Maze;
 
-public enum BoxPush {
+public enum BoxPush implements Cmd {
 	PUSH_UP(Direction.UP), PUSH_DOWN(Direction.DOWN), PUSH_RIGHT(Direction.RIGHT), PUSH_LEFT(Direction.LEFT);
 	
 	Direction dirn;
@@ -15,6 +15,9 @@ public enum BoxPush {
 	
 	int[] prc;
 	int[] to;
+	int[] box;
+	
+	private int[][] stoneLocs;
 	
 	BoxPush(Direction dirn) {
 		this.dirn = dirn;
@@ -22,6 +25,7 @@ public enum BoxPush {
 		update = new Rectangle();
 		prc = new int[2];
 		to = new int[2];
+		box = new int[2];
 	}
 	public void execute(JPanel drawArea, Maze maze, Canvas canvas) {
 		int sSize = canvas.getMazeSquareSize();
@@ -38,11 +42,41 @@ public enum BoxPush {
 		to[1] *= sSize;
 		setUpdateArea(update, sSize, to);
 		drawArea.repaint(update);
-		//TODO repaint all stones to show available pushes for each stone
-		Controller.getInstance().setLastAction(Controller.PUSH_ACTION);
+		
+		// update all stones to show available pushes
+		stoneLocs = maze.getBoxLocations();
+		for (int[] coord : stoneLocs) {
+			drawArea.repaint(coord[1] * sSize, coord[0] * sSize, sSize, sSize);
+		}
+	}
+	@Override
+	public void undo(JPanel drawArea, Maze maze, Canvas canvas) {
+		
+		int sSize = canvas.getMazeSquareSize();
+		maze.getPlayerLocation(prc);
+		
+		dirn.getToPosition(prc, box);
+		Direction undoDirn = dirn.opposite();
+		
+		// player
+		maze.movePlayer(undoDirn);
+		
+		// box 
+		maze.moveBox(box[0], box[1], undoDirn);
+		
+		prc[0] *= sSize;
+		prc[1] *= sSize;
+		setUpdateArea(update, sSize, prc);
+		drawArea.repaint(update);
+		
+		// update all stones to show available pushes
+		stoneLocs = maze.getBoxLocations();
+		for (int[] coord : stoneLocs) {
+			drawArea.repaint(coord[1] * sSize, coord[0] * sSize, sSize, sSize);
+		}
 	}
 	/* Update 3 squares. 1) player's old position 2) new player position 3) new box position
-	   int[] from contains the old box position
+	   int[]from contains the old box position
 	*/
 	public void setUpdateArea(Rectangle area, int delta, int[] from) {
 		int x,y,width,height;

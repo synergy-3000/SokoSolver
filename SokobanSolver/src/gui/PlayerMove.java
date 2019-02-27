@@ -7,13 +7,14 @@ import javax.swing.JPanel;
 import setup.Maze;
 
 // A Player move
-public enum PlayerMove {
+public enum PlayerMove implements Cmd {
 	UP(Direction.UP), DOWN(Direction.DOWN), RIGHT(Direction.RIGHT), LEFT(Direction.LEFT);
 	
 	Direction dirn;
 	private boolean enabled;
 	private Rectangle update;
-	
+	PlayerMove undoMove;
+	Direction undoDirn;
 	int[] prc;
 	
 	PlayerMove(Direction dirn) {
@@ -21,6 +22,19 @@ public enum PlayerMove {
 		enabled = true;
 		update = new Rectangle();
 		prc = new int[2];
+		undoDirn = dirn.opposite();
+		
+	}
+	@Override
+	public void undo(JPanel drawArea, Maze maze, Canvas canvas) {
+		if (undoMove == null) {
+			for (PlayerMove move : PlayerMove.values()) {
+				if (move.dirn == undoDirn) {
+					undoMove = move;
+				}
+			}	
+		}
+		undoMove.execute(drawArea, maze, canvas);
 	}
 	public void execute(JPanel drawArea, Maze maze, Canvas canvas) {
 		int sSize = canvas.getMazeSquareSize();
@@ -30,7 +44,6 @@ public enum PlayerMove {
 		maze.movePlayer(dirn);
 		setUpdateArea(update, sSize, prc);
 		drawArea.repaint(update);
-		Controller.getInstance().setLastAction(Controller.MOVE_ACTION);
 	}
 	public void setUpdateArea(Rectangle area, int delta, int[] from) {
 		int x,y,width,height;

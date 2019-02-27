@@ -213,7 +213,7 @@ public class Reader implements MazeReader {
 		boolean[] isGoalNode; // true if node id = goal node
 		int[] from = new int[2];
 		int[] to = new int[2];
-		//TODO change getDistanes(..) so it doesn't keep allocating a new array each call
+		//TODO change getDistances(..) so it doesn't keep allocating a new array each call
 		@Override
 		public int[][] getDistances(int startRow, int startCol) {
 			if(!inArrayBounds(startRow, startCol)) {
@@ -418,6 +418,19 @@ public class Reader implements MazeReader {
 			from[0] = pr; from[1] = pc;
 			dirn.getToPosition(from, playerRowCol);
  		}
+		// TODO test "Start Again" bug 
+		@Override
+		public void setBoxLocations(int[][] coords) {
+			for (int[] oldCoord : boxes) {
+				setEmptyAt(oldCoord[0], oldCoord[1]);
+			}
+			for (int i=0; i<boxes.length; i++) {
+				for (int j=0; j<2; j++) {
+					setBoxAt(coords[i][0], coords[i][1]);
+					boxes[i][j] = coords[i][j];
+				}
+			}
+		}
 	}
 	@Override
 	public Maze getMaze() {

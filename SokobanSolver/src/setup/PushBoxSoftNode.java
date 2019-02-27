@@ -1,10 +1,6 @@
 package setup;
 
 import java.util.Arrays;
-import java.util.HashMap;
-
-import solver.MyMazePosition;
-import solver.Region;
 
 public class PushBoxSoftNode extends PushBoxNode implements Node {
 	

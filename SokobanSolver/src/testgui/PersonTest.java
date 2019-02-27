@@ -1,7 +1,5 @@
 package testgui;
 
-import java.awt.Dimension;
-import java.io.File;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
@@ -10,11 +8,7 @@ import javax.swing.SwingUtilities;
 import gui.Controller;
 import gui.GraphicObj;
 import gui.MyPanel;
-import gui.Person;
-import setup.Graph;
-import setup.GraphCreator;
-import setup.Maze;
-import setup.Reader;
+import gui.SokoMenu;
 
 public class PersonTest {
 	
@@ -65,6 +59,9 @@ public class PersonTest {
         
         
         panel = Controller.getInstance().getPanel();
+        
+        SokoMenu sokoMenu = Controller.getInstance().getMenu();
+        f.setJMenuBar(sokoMenu.createMenuBar());
         
         f.addKeyListener(Controller.getInstance());
         

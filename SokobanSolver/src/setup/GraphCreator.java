@@ -216,7 +216,7 @@ public class GraphCreator implements Graph {
 	}
 	/*
 	 * Calculates which directions are pushable for the box located at <code>boxRow,boxCol</code>
-	 * and player at playerrow, playercol and sets to true in canPush at the index of Direction.values().
+	 * and player at playerrow, playercol and sets to true in canPush[] at the index of Direction.values().
 	 * pReachable[][] is the player reachable area ( >= 0 is reachable )
 	 */
 	public void getPushableDirections(int boxRow, int boxCol, boolean[] canPush, int[][] pReachable) {

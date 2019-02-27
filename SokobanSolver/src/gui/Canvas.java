@@ -37,6 +37,7 @@ public class Canvas {
 	}
 	public void draw(Graphics2D g) {
 		g.getClipBounds(clip);
+		System.out.println("Clip bounds: " + clip);
 		int x,y;
 		
 		for(int r=0; r<canvas.length; r++) {

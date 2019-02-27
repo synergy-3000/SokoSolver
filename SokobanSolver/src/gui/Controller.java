@@ -19,10 +19,9 @@ import setup.Maze;
 import setup.Reader;
 import solver.SokoDeadPositionFinder;
 
+//TODO detect when all stones are on goal squares and display a "Well Done!!" message
+//move execute() code from BoxPush and PlayerMove to PushCmd and MoveCmd: completed
 public class Controller implements KeyListener {
-	public static int PUSH_ACTION = 0;
-	public static int MOVE_ACTION = 1;
-	
 	MyPanel panel;
 	Maze maze;
 	Canvas canvas;
@@ -37,6 +36,9 @@ public class Controller implements KeyListener {
 	boolean isDead[][];
 	boolean isGoal[][];
 	
+	private boolean undoEnabled = false;
+	private boolean redoEnabled = false;
+	
 	int[] to, from;
 	int[] playerLoc;
 	
@@ -50,13 +52,43 @@ public class Controller implements KeyListener {
 	
 	ArrayList<Cmd> history;
 	int current = 0; // (current - 1) to undo, (current) to redo
-	private int lastAction = MOVE_ACTION; // PUSH_ACTION or MOVE_ACTION
+	private boolean showDeadPos = true;
+	private SokoMenu sokoMenu;
+	
+	int[][] initialStoneLocs;
+	int[] initialPlayerLoc;
 	
 	public static Controller getInstance() {
 		if (instance == null) {
 			instance = new Controller();
 		}
 		return instance;
+	}
+	private void saveInitialState() {
+		int[][] stonePosns;
+		stonePosns = maze.getBoxLocations();
+		// Make a copy because a reference to the array is returned by maze.getBoxLocations()
+		// and this will change as boxes are moved!
+		initialStoneLocs = new int[stonePosns.length][2];
+		for (int i=0; i<stonePosns.length; i++) {
+			for (int j=0; j<2; j++) {
+				initialStoneLocs[i][j] = stonePosns[i][j];
+			}
+		}
+		// player
+		initialPlayerLoc = new int[2];
+		maze.getPlayerLocation(initialPlayerLoc);
+	}
+	private void restoreInitialState() {
+		maze.setPlayerLocation(initialPlayerLoc);
+		maze.setBoxLocations(initialStoneLocs);
+		history.clear();
+		current = 0;
+		undoEnabled = false;
+		redoEnabled = false;
+		sokoMenu.enableRedo(false);
+		sokoMenu.enableUndo(false);
+		playerPushes = 0;
 	}
 	private Controller() {
 		
@@ -71,7 +103,6 @@ public class Controller implements KeyListener {
 		to = new int[2];
 		from = new int[2];
 		playerLoc = new int[2];
-		
 		
 		// Dead positions
 		int[] deadPosns = finder.getDeadPositions(graph, maze);
@@ -128,19 +159,24 @@ public class Controller implements KeyListener {
         panel = new MyPanel(person, cSize, cSize, canvas);
         panel.setPreferredSize(new Dimension(cSize * nCols, cSize * nRows));
         
-        System.out.println("panel drawing width/height: " + cSize);
+        // Menu
+        sokoMenu = new SokoMenu();
+        
+        saveInitialState();
+        
+        //System.out.println("panel drawing width/height: " + cSize);
 		
 	}
 	public PlayerMove[] getPlayerMoves() {
 		maze.getPlayerLocation(playerLoc);
-		System.out.println("getPlayerMoves(): ");
-		System.out.println("Player: (" + playerLoc[0]+","+playerLoc[1]+")");
+		//System.out.println("getPlayerMoves(): ");
+		//System.out.println("Player: (" + playerLoc[0]+","+playerLoc[1]+")");
 		
 		for (PlayerMove move : PlayerMove.values()) {
-			System.out.println("dirn: " + move.dirn);
+			//System.out.println("dirn: " + move.dirn);
 			move.dirn.getToPosition(playerLoc, to);
-			System.out.println("to[]: (" + to[0] + "," + to[1] + ")");
-			System.out.println("maze.isEmpty(to[0],to[1]): " + maze.isEmpty(to[0], to[1]));
+			//System.out.println("to[]: (" + to[0] + "," + to[1] + ")");
+			//System.out.println("maze.isEmpty(to[0],to[1]): " + maze.isEmpty(to[0], to[1]));
 			move.setEnabled(maze.isEmpty(to[0], to[1]));
 		}
 		return PlayerMove.values();
@@ -188,7 +224,6 @@ public class Controller implements KeyListener {
 	@Override
 	public void keyTyped(KeyEvent e) {
 		System.out.println("KeyTyped: " + e.getKeyChar());
-		int dy = 0, dx = 0;
 		Direction dirn = null;
 		boolean bMove = true;
 		
@@ -218,7 +253,7 @@ public class Controller implements KeyListener {
 				if (dirn == move.dirn) {
 					if (move.isEnabled()) {
 						move.execute(panel, maze, canvas);
-						addToHistory(new MoveCmd(move));
+						addToHistory(move);
 						moved = true;
 					}
 				}
@@ -230,7 +265,7 @@ public class Controller implements KeyListener {
 					if (dirn == push.dirn) {
 						if (push.isEnabled()) {
 							push.execute(panel, maze, canvas);
-							addToHistory(new PushCmd(push));
+							addToHistory(push);
 							moved = true;
 						}
 					}
@@ -254,15 +289,7 @@ public class Controller implements KeyListener {
 
 	@Override
 	public void keyPressed(KeyEvent e) {
-		// Undo ?
-		if (e.isMetaDown() && (e.getKeyCode()) == KeyEvent.VK_Z) {
-			if (e.isShiftDown()) {
-				redo();
-			}
-			else {
-				undo();
-			}
-		}
+		
 	}
 
 	@Override
@@ -271,27 +298,61 @@ public class Controller implements KeyListener {
 		
 	}  
 	private void addToHistory(Cmd cmd) {
+		if (current != history.size()) {
+			history.subList(current, history.size()).clear();
+		}
 		history.add(cmd);
-		current = history.size();
+		current += 1;
+		updateRedoUndo();
+		
+		System.out.println("addToHistory(): current = " + current + " history.size() = " + history.size());
+		
 	}
-	private void undo() {
+	public void undo() {
 		if ( (current - 1) >= 0 ) {
 			current -= 1;
 			history.get(current).undo(panel, maze, canvas);
+			updateRedoUndo();
 		}
 	}
-	private void redo() {
+	public void redo() {
 		if ( current < history.size()) {
 			System.out.println("redo()");
 			history.get(current).execute(panel, maze, canvas);
 			current += 1;
+			updateRedoUndo();
 		}
 	}
-	public int getLastAction() {
-		return lastAction;
+	private boolean canUndo() {
+		return (current > 0);
 	}
-	public void setLastAction(int type) {
-		lastAction = type;
+	private boolean canRedo() {
+		return (current < history.size());
+	}
+	private void updateRedoUndo() {
+		if (canUndo() != undoEnabled) {
+			undoEnabled = !undoEnabled;
+			sokoMenu.enableUndo(undoEnabled);
+		}
+		if (canRedo() != redoEnabled) {
+			redoEnabled = !redoEnabled;
+			sokoMenu.enableRedo(redoEnabled);
+		}
+	}
+	//TODO implement show dead positions in canavs.java or controller.java
+	public void showDead(boolean show) {
+		showDeadPos = show;
+	}
+	/* Start again from the beginning */
+	//implement reset() : completed
+	public void reset() {
+		restoreInitialState();
+		// Repaint everything
+		panel.repaint(panel.getBounds());
+	}
+
+	public SokoMenu getMenu() {
+		return sokoMenu;
 	}
 }
 class EmptySquare extends AbstractGraphicObj {
@@ -416,6 +477,8 @@ class Wall extends AbstractGraphicObj {
 		}
 	}
 	protected void drawWall(Graphics2D g) {
+		Color save = g.getColor();
+		
 		for (int i=0; i<fillColors.length; i++) {
 			//g.setColor(Color.BLACK);
 			//g.drawPolygon(polyX[i], polyY[i], polyX[i].length);
@@ -424,5 +487,7 @@ class Wall extends AbstractGraphicObj {
 		}
 		g.setColor(darkerGray);
 		g.drawLine(px[7], py[7], px[6], py[6]);
+		
+		g.setColor(save);
 	}
 }
