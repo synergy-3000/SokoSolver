@@ -72,7 +72,7 @@ public class Line implements GraphicObj {
 
 	@Override
 	public void setDrawingArea(float newWidth, float newHeight) {
-		// TODO Auto-generated method stub
+		// Now handled by AbstractGraphicObj (the composite of GraphicObjs)
 		
 	}
 	@Override

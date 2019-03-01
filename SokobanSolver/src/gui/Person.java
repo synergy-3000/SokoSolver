@@ -124,12 +124,7 @@ public class Person extends Figure implements GraphicObj {
 		}
 		return retVal;
 	}
-	// Reflect about x = 50
-	private void reflectX50(int[] pts, int[] reflected) {
-		for (int i = 0; i<pts.length; i++) {
-			reflected[i] = 100 - pts[i];
-		}
-	}
+	
 	public void setDirection(Direction move) {
 		dirn = move;
 	}

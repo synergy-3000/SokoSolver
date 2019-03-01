@@ -62,9 +62,10 @@ class TestReader {
 		String outStr = String.format("Player located at (%d,%d)", playerCell[0], playerCell[1]); 
 		System.out.println(outStr);
 		assert(maze != null);
+		int[][] reachable = new int[maze.numRows()][maze.numCols()];
 		
-		maze.getDistances(8, 8);
-		maze.getDistances(3, 9);
+		maze.getDistances(8, 8, reachable);
+		maze.getDistances(3, 9, reachable);
 		
 		// File does not exist
 		file = new File("/Users/zhipinghe/Desktop/SokobanMaz1.rtf");

@@ -2,6 +2,7 @@ package setup;
 
 import java.util.Arrays;
 
+import gui.Controller;
 import gui.Direction;
 
 public class GraphCreator implements Graph {
@@ -20,6 +21,7 @@ public class GraphCreator implements Graph {
 	int boxes[], nBoxes;
 	int goalSquares[], nGoals;
 	int player;
+	int[][] reachable;
 	
 	Maze maze;
 	
@@ -48,6 +50,9 @@ public class GraphCreator implements Graph {
 		
 		// Assign an index for each empty square
 		ids = new int[nMazeRows][nMazeCols];
+		
+		// Player reachable squares
+		reachable = new int[nMazeRows][nMazeCols];
 		
 		for (int r=0; r < nMazeRows; r++) {
 			for (int c=0; c < nMazeCols; c++) {
@@ -139,7 +144,6 @@ public class GraphCreator implements Graph {
 	// and the possible pushes calculated
 	void addEdges() {
 		int id;
-		int distances[][];
 		int row,col;
 		int toNodeIds[];
 		int nodeId;
@@ -157,11 +161,11 @@ public class GraphCreator implements Graph {
 			maze.setBoxAt(row, col);
 			
 			// Get player reachable array. This is dependent on the box location and player location
-			distances = maze.getDistances(nodeRows[player], nodeColumns[player]);
+			maze.getDistances(nodeRows[player], nodeColumns[player], reachable);
 			
 			nFrom[id] = 0;
 			for (Direction pushDirn : Direction.values()) {
-				 nodeId = getNode(id, pushDirn, distances);
+				 nodeId = getNode(id, pushDirn, reachable);
 				 if (nodeId >= 0) {
 					toNodeIds[nFrom[id]] = nodeId;
 					nFrom[id] += 1;
@@ -215,12 +219,14 @@ public class GraphCreator implements Graph {
 		return retVal;
 	}
 	/*
-	 * Calculates which directions are pushable for the box located at <code>boxRow,boxCol</code>
-	 * and player at playerrow, playercol and sets to true in canPush[] at the index of Direction.values().
-	 * pReachable[][] is the player reachable area ( >= 0 is reachable )
+	 * Calculates which directions are pushable, boolean canPush[], for the box located at <code>boxRow,boxCol</code>
+	 * in the same order as Direction.values().
 	 */
-	public void getPushableDirections(int boxRow, int boxCol, boolean[] canPush, int[][] pReachable) {
-		int i=0;
+	public int getPushableDirections(int boxRow, int boxCol, boolean[] canPush) {
+		int i=0, nPushes = 0;
+		int[][] reachable = Controller.getInstance().getReachable();
+		System.out.println("getPushableDirections:for box at (row,col): (" + boxRow + "," + boxCol + ")");
+		printReachable(reachable);
 		for (Direction dirn : Direction.values()) {
 			canPush[i] = false;
 			getPositions(boxRow, boxCol, dirn, playerPos, to);
@@ -229,11 +235,32 @@ public class GraphCreator implements Graph {
 			if (maze.isEmpty(to[ROW], to[COL]) && maze.isEmpty(playerPos[ROW], playerPos[COL])) {
 
 				// Player square has to be reachable
-				if ( pReachable[playerPos[ROW]][playerPos[COL]] >= 0 ) {
+				if ( reachable[playerPos[ROW]][playerPos[COL]] >= 0 ) {
 					canPush[i] = true;
+					nPushes++;
 				}
 			}
 			i += 1;
+		}
+		String s = String.format("Pushes for stone at (%d,%d): ", boxRow,boxCol);
+		int j = 0;
+		for (Direction dirn : Direction.values()) {
+			s += canPush[j] ?  dirn : " ";
+			++j;
+		}
+		System.out.println(s);
+		return nPushes;
+	}
+	// Debug
+	private void printReachable(int[][] array) {
+		String row;
+		for (int r=0; r<maze.numRows(); r++) {
+			row = "";
+			for (int c=0; c<maze.numCols(); c++) {
+				if (array[r][c] >= 0 && array[r][c] < 10) row += " "; 
+				row += array[r][c] + ","; 
+			}
+			System.out.println(row);
 		}
 	}
 	/* Returns the node for the player if push can be performed else -1
@@ -258,7 +285,6 @@ public class GraphCreator implements Graph {
 		
 		int playerPos[][] = new int[4][2];
 		int nPlayerPos = 0; 
-		int[][] playerDistances;
 		
 		int[][] pushToIds = new int[4][4];  // For each player position in normPlayers have an array of allowed
 		                                    // pushes. 4 player squares and 4 possible pushes for each square.
@@ -305,12 +331,12 @@ public class GraphCreator implements Graph {
 				regionNum[i] = nRegions;
 				nRegions += 1;
 			}
-			playerDistances = maze.getDistances(playerPos[i][ROW], playerPos[i][COL]);
+			maze.getDistances(playerPos[i][ROW], playerPos[i][COL], reachable);
 			for (int j = (i+1); j<nPlayerPos; j++) {
 				row = playerPos[j][ROW];
 				col = playerPos[j][COL];
 				
-				if (playerDistances[row][col] >= 0) {
+				if (reachable[row][col] >= 0) {
 					regionNum[j] = regionNum[i];
 				}
 			}
@@ -346,51 +372,6 @@ public class GraphCreator implements Graph {
 		
 	}
 	
-	private void swapPositions(int[] pos1, int[] pos2) {
-		int saveRow = pos1[ROW];
-		int saveCol = pos1[COL];
-		
-		pos1[ROW] = pos2[ROW];
-		pos1[COL] = pos2[COL];
-		pos2[ROW] = saveRow;
-		pos2[COL] = saveCol;
-	}
-	
-	private int getPlayerNode(int boxId, Direction pushDirn) {
-		int boxRow = nodeRows[boxId];
-		int boxCol = nodeColumns[boxId];
-		int boxPosition[] = new int[2];
-		boxPosition[ROW] = boxRow;
-		boxPosition[COL] = boxCol;
-		int toPos[] = new int[2];
-		
-		pushDirn.opposite().getToPosition(boxPosition, toPos);
-		
-		return ids[toPos[ROW]][toPos[COL]];
-		
-	}
-	private int[] getNormPlayerPos(int[][] distances) {
-		
-		int pPos[] = new int[2];
-		pPos[ROW] = -1;
-		pPos[COL] = -1;
-		
-		for (int row=0; (row<distances.length) && (pPos[ROW] == -1); row++) {
-			for (int col=0; col<distances[row].length && (pPos[ROW] == -1); col++) {
-				if (distances[row][col] >= 0) {
-					pPos[ROW] = row;
-					pPos[COL] = col;
-				}
-			}
-		}
-		return pPos;
-	}
-	public int[] getNormPlayerPos(int pRow, int pCol) {
-		
-		int[][] distances = maze.getDistances(pRow, pCol);
-		return getNormPlayerPos(distances);
-		
-	}
 	public String nodeIdToString(int id) {
 		int row,col;
 		row = nodeRows[id];

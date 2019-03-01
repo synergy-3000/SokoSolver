@@ -52,7 +52,6 @@ public class Circle implements GraphicObj {
 
 	@Override
 	public void setDrawingArea(float newWidth, float newHeight) {
-		// TODO Auto-generated method stub
 		
 	}
 	@Override

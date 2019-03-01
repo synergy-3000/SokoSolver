@@ -64,6 +64,7 @@ public class Reader implements MazeReader {
 		try {
 			d = new BufferedReader(new FileReader(file));
 			String aLine = d.readLine(); 
+			
 			// Find Sokoban header
 			while (aLine != null && !isSokobanFile) {
 				if (aLine.indexOf(SOKOBAN_HEADER) != -1) isSokobanFile = true;
@@ -190,6 +191,7 @@ public class Reader implements MazeReader {
 			return neighbours;
 		}
 		private boolean checkCell(int r, int c) {
+			//System.out.printf("checkCell(%d,%d) isOutsideMaze()= %b\n", r,c,maze.isOutsideMaze(r, c));
 			boolean retVal = false;
 			if (r>=0 && r<numRows && c>=0 && c<numCols) {
 				if (!maze.isWall(r,c) && !maze.isOutsideMaze(r,c) && !maze.isBox(r, c)) {
@@ -213,9 +215,9 @@ public class Reader implements MazeReader {
 		boolean[] isGoalNode; // true if node id = goal node
 		int[] from = new int[2];
 		int[] to = new int[2];
-		//TODO change getDistances(..) so it doesn't keep allocating a new array each call
+		//change getDistances(..) so it doesn't keep allocating a new array each call : done
 		@Override
-		public int[][] getDistances(int startRow, int startCol) {
+		public void getDistances(int startRow, int startCol, int[][] distances) {
 			if(!inArrayBounds(startRow, startCol)) {
 				errMsg = String.format("Invalid start position (%d,%d)", startRow,startCol);
 				throw new ArrayIndexOutOfBoundsException(errMsg);
@@ -237,7 +239,6 @@ public class Reader implements MazeReader {
 			// Do a BFS (Breadth First Search) on Maze Array
 			LinkedList<MazeCell> queue = new LinkedList<MazeCell>();
 			queue.add(getMazeCell(startRow,startCol));
-			int[][] distances = new int[numRows][numCols];
 			for (int i=0; i<numRows; i++) {
 				Arrays.fill(distances[i], -1);
 			}
@@ -278,7 +279,6 @@ public class Reader implements MazeReader {
 					}
 				}
 			});
- 			return distances;
 		}
 
 		@Override
@@ -418,7 +418,7 @@ public class Reader implements MazeReader {
 			from[0] = pr; from[1] = pc;
 			dirn.getToPosition(from, playerRowCol);
  		}
-		// TODO test "Start Again" bug 
+		// test "Start Again" bug : fixed 
 		@Override
 		public void setBoxLocations(int[][] coords) {
 			for (int[] oldCoord : boxes) {
@@ -430,6 +430,15 @@ public class Reader implements MazeReader {
 					boxes[i][j] = coords[i][j];
 				}
 			}
+		}
+
+		@Override
+		public boolean allStonesOnGoals() {
+			boolean all = true;
+			for (int i=0; i<boxes.length && all; i++) {
+				all = maze.isGoalSquare(boxes[i][0], boxes[i][1]);
+			}
+			return all;
 		}
 	}
 	@Override

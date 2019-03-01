@@ -3,7 +3,7 @@ package setup;
 import gui.Direction;
 
 public interface Maze {
-	public int[][] getDistances(int startRow, int startCol); 
+	public void getDistances(int startRow, int startCol, int[][] distances); 
 	public boolean isOutsideMaze(int row, int col);
 	public boolean isWall(int row, int col);
 	public boolean isBox(int row, int col);
@@ -20,5 +20,6 @@ public interface Maze {
 	public void movePlayer(Direction dirn);
 	public void setEmptyAt(int row, int col);
 	public boolean[] getIsGoalNode();  // true for nodeId = a goal node
+	public boolean allStonesOnGoals();
 	
 }

@@ -43,7 +43,7 @@ public class PersonTest {
 	private  void createAndShowGUI() {
         System.out.println("Created GUI on EDT? "+
         SwingUtilities.isEventDispatchThread());
-        JFrame f = new JFrame("ZSokoban");
+        
        
         
         
@@ -59,6 +59,8 @@ public class PersonTest {
         
         
         panel = Controller.getInstance().getPanel();
+        
+        JFrame f = Controller.getInstance().getFrame();
         
         SokoMenu sokoMenu = Controller.getInstance().getMenu();
         f.setJMenuBar(sokoMenu.createMenuBar());

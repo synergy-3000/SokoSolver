@@ -13,16 +13,31 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 import setup.Graph;
 import setup.GraphCreator;
 import setup.Maze;
 import setup.Reader;
 import solver.SokoDeadPositionFinder;
 
-//TODO detect when all stones are on goal squares and display a "Well Done!!" message
+//TODO Paint squares outside maze in dark blue?
+//TODO Add "Show Grid" checkbox menu item under "Preferences" menu
+//TODO update ReadMe file in my repository on GitHUb
+//TODO Get a local version of java api doc
+//TODO Investigate lambda expressions
+//TODO Add "Show Available Pushes" check box item under "Preferences" Menu
+//TODO Make a distribution, jar file ?, of java project 
+//TODO show total number of pushes 
+
+//   ... create a big mazeChars[][] and record the start and finish row in mazeChars[][] for each maze.
+// Also record the max for states and spaces.
+//detect when all stones are on goal squares and display a "Well Done!!" message : completed
 //move execute() code from BoxPush and PlayerMove to PushCmd and MoveCmd: completed
 public class Controller implements KeyListener {
 	MyPanel panel;
+	JFrame frame;
 	Maze maze;
 	Canvas canvas;
 	Person person;
@@ -31,7 +46,9 @@ public class Controller implements KeyListener {
 	GraphicObj goal;
 	GraphicObj dead;
 	GraphicObj empty;
-	Stone box;
+	private Stone stoneOnGoal;
+	private Stone stonePushable;
+	private Stone stoneOnEmpty;
 	
 	boolean isDead[][];
 	boolean isGoal[][];
@@ -52,11 +69,14 @@ public class Controller implements KeyListener {
 	
 	ArrayList<Cmd> history;
 	int current = 0; // (current - 1) to undo, (current) to redo
-	private boolean showDeadPos = true;
 	private SokoMenu sokoMenu;
 	
 	int[][] initialStoneLocs;
 	int[] initialPlayerLoc;
+	
+	int[][] reachable;
+	private boolean[] canPush;
+	
 	
 	public static Controller getInstance() {
 		if (instance == null) {
@@ -64,32 +84,7 @@ public class Controller implements KeyListener {
 		}
 		return instance;
 	}
-	private void saveInitialState() {
-		int[][] stonePosns;
-		stonePosns = maze.getBoxLocations();
-		// Make a copy because a reference to the array is returned by maze.getBoxLocations()
-		// and this will change as boxes are moved!
-		initialStoneLocs = new int[stonePosns.length][2];
-		for (int i=0; i<stonePosns.length; i++) {
-			for (int j=0; j<2; j++) {
-				initialStoneLocs[i][j] = stonePosns[i][j];
-			}
-		}
-		// player
-		initialPlayerLoc = new int[2];
-		maze.getPlayerLocation(initialPlayerLoc);
-	}
-	private void restoreInitialState() {
-		maze.setPlayerLocation(initialPlayerLoc);
-		maze.setBoxLocations(initialStoneLocs);
-		history.clear();
-		current = 0;
-		undoEnabled = false;
-		redoEnabled = false;
-		sokoMenu.enableRedo(false);
-		sokoMenu.enableUndo(false);
-		playerPushes = 0;
-	}
+	
 	private Controller() {
 		
 		history = new ArrayList<Cmd>();
@@ -103,6 +98,7 @@ public class Controller implements KeyListener {
 		to = new int[2];
 		from = new int[2];
 		playerLoc = new int[2];
+		canPush = new boolean[4];
 		
 		// Dead positions
 		int[] deadPosns = finder.getDeadPositions(graph, maze);
@@ -146,7 +142,13 @@ public class Controller implements KeyListener {
         goal = new GoalSquare();
         dead = new DeadPosition();
         empty = new EmptySquare();
-        box = new Stone();
+        stonePushable = new Stone(Stone.STONE_PUSHABLE);
+        stoneOnEmpty = new Stone(Stone.STONE_ON_EMPTY_SQUARE);
+        stoneOnGoal = new Stone(Stone.STONE_ON_GOAL);
+        
+        
+        // Frame 
+        frame = new JFrame("ZSokoban");
         
         // Create canvas
         createSokoSquares(cSize);
@@ -154,7 +156,7 @@ public class Controller implements KeyListener {
         //create box GraphicObj : done
         //add controller as keylistener : done
         //get player pushes and player moves : done
-        canvas = new Canvas(maze, person, box, sokoSquares, cSize);
+        canvas = new Canvas(maze, person, sokoSquares, cSize);
         
         panel = new MyPanel(person, cSize, cSize, canvas);
         panel.setPreferredSize(new Dimension(cSize * nCols, cSize * nRows));
@@ -164,8 +166,38 @@ public class Controller implements KeyListener {
         
         saveInitialState();
         
+        // Player reachable squares
+        reachable = new int[maze.numRows()][maze.numCols()];
+        updateReachable();
+        
         //System.out.println("panel drawing width/height: " + cSize);
 		
+	}
+	private void saveInitialState() {
+		int[][] stonePosns;
+		stonePosns = maze.getBoxLocations();
+		// Make a copy because a reference to the array is returned by maze.getBoxLocations()
+		// and this will change as boxes are moved!
+		initialStoneLocs = new int[stonePosns.length][2];
+		for (int i=0; i<stonePosns.length; i++) {
+			for (int j=0; j<2; j++) {
+				initialStoneLocs[i][j] = stonePosns[i][j];
+			}
+		}
+		// player
+		initialPlayerLoc = new int[2];
+		maze.getPlayerLocation(initialPlayerLoc);
+	}
+	private void restoreInitialState() {
+		maze.setPlayerLocation(initialPlayerLoc);
+		maze.setBoxLocations(initialStoneLocs);
+		history.clear();
+		current = 0;
+		undoEnabled = false;
+		redoEnabled = false;
+		sokoMenu.enableRedo(false);
+		sokoMenu.enableUndo(false);
+		playerPushes = 0;
 	}
 	public PlayerMove[] getPlayerMoves() {
 		maze.getPlayerLocation(playerLoc);
@@ -266,6 +298,11 @@ public class Controller implements KeyListener {
 						if (push.isEnabled()) {
 							push.execute(panel, maze, canvas);
 							addToHistory(push);
+							if (maze.allStonesOnGoals()) {
+								solved();
+							}
+							// Update the player reachable area
+							updateReachable();
 							moved = true;
 						}
 					}
@@ -287,6 +324,40 @@ public class Controller implements KeyListener {
 		
 	}
 
+	private void updateReachable() {
+		maze.getPlayerLocation(playerLoc);
+		maze.getDistances(playerLoc[0], playerLoc[1], reachable);
+	}
+
+	private void solved() {
+		
+		//Custom button text
+		Object[] options = {"Quit",
+		                    "Next",
+		                    "Start Again"};
+		int n = JOptionPane.showOptionDialog(frame,
+				"Well Done!!",
+			    "Solved",
+		    JOptionPane.YES_NO_CANCEL_OPTION,
+		    JOptionPane.QUESTION_MESSAGE,
+		    null,
+		    options,
+		    options[2]);
+		switch(n) {
+		case JOptionPane.YES_OPTION:
+			frame.dispose();
+			break;
+		case JOptionPane.NO_OPTION:
+			//TODO Implement "Next" - gets the next puzzle.
+			JOptionPane.showMessageDialog(frame, "Not implemented yet.");
+			break;
+		case JOptionPane.CANCEL_OPTION:
+			reset();
+			break;
+		
+		}
+
+	}
 	@Override
 	public void keyPressed(KeyEvent e) {
 		
@@ -294,7 +365,6 @@ public class Controller implements KeyListener {
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
 		
 	}  
 	private void addToHistory(Cmd cmd) {
@@ -304,7 +374,7 @@ public class Controller implements KeyListener {
 		history.add(cmd);
 		current += 1;
 		updateRedoUndo();
-		
+
 		System.out.println("addToHistory(): current = " + current + " history.size() = " + history.size());
 		
 	}
@@ -339,9 +409,21 @@ public class Controller implements KeyListener {
 			sokoMenu.enableRedo(redoEnabled);
 		}
 	}
-	//TODO implement show dead positions in canavs.java or controller.java
+	//implement show dead positions in canavs.java or controller.java : completed
 	public void showDead(boolean show) {
-		showDeadPos = show;
+		for (int r=0; r<sokoSquares.length; r++) {
+			for (int c=0; c<sokoSquares[r].length; c++) {
+				if (isDead[r][c]) {
+					if (show) {
+						sokoSquares[r][c] = dead;
+					}
+					else {
+						sokoSquares[r][c] = empty;
+					}
+				}
+			}
+		}
+		panel.repaint(panel.getBounds());
 	}
 	/* Start again from the beginning */
 	//implement reset() : completed
@@ -353,6 +435,29 @@ public class Controller implements KeyListener {
 
 	public SokoMenu getMenu() {
 		return sokoMenu;
+	}
+	public JFrame getFrame() {
+		return frame;
+	}
+	public int[][] getReachable() {
+		return reachable;
+	}
+
+	public GraphicObj getStone(int row, int col) {
+		Stone stone;
+		if (maze.isGoalSquare(row, col)) {
+			stone = stoneOnGoal;
+		}
+		else {
+			if (GraphCreator.getGraphCreator().getPushableDirections(row, col, canPush) > 0) {
+				stone = stonePushable;
+				stone.setPushes(canPush);
+			}
+			else {
+				stone = stoneOnEmpty;
+			}
+		}
+		return stone;
 	}
 }
 class EmptySquare extends AbstractGraphicObj {

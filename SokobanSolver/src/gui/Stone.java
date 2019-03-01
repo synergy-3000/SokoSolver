@@ -10,6 +10,8 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.util.Arrays;
+import java.util.function.IntUnaryOperator;
 
 public class Stone extends AbstractGraphicObj {
 	public static final int STONE_ON_GOAL = 0;         // Yellow ?
@@ -17,19 +19,106 @@ public class Stone extends AbstractGraphicObj {
 	public static final int STONE_SOLVER_NEXT = 2;     // next stone to push in solution RED
 	public static final int STONE_ON_EMPTY_SQUARE = 3; // Dark BLUE
 	
-	
+	/*public static final int UP_MASK = 1;
+	public static final int	DOWN_MASK = 2;
+	public static final int RIGHT_MASK = 4;
+	public static final int LEFT_MASK = 8;
+	private int pushes = 0;
+	*/
 	final int WIDTH = 50;
 	final int HEIGHT = 50;
+	
+	private final int TRI_HEIGHT = 10;
 	
 	Color orange = new Color(255, 137, 11);
 	Color lightblue = new Color(0x0153CC);
 	
 	Rectangle bounds = new Rectangle(0,0, WIDTH, HEIGHT);
 	
-	int type = STONE_ON_EMPTY_SQUARE;
+	private int type = STONE_ON_EMPTY_SQUARE;
 	
-	public void setType(int type) {
+	
+	private boolean canPush[];
+	int[] upTriX, downTriX, leftTriX, rightTriX;
+	int[] upTriY, downTriY, leftTriY, rightTriY;
+	int[][] trianglesX;
+	int[][] trianglesY;
+	
+	public Stone(int type) {
+		super();
 		this.type = type;
+		canPush = new boolean[4];
+		Arrays.fill(canPush, false);
+		
+		// Make triangles
+		makeTriangles();
+		// Put triangles in same order as Direction.values()
+		trianglesX = new int[4][];
+		trianglesY = new int[4][];
+		int i=0;
+		for (Direction dirn : Direction.values()) {
+			switch(dirn) {
+			case UP:
+				trianglesX[i] = upTriX;
+				trianglesY[i] = upTriY;
+				break;
+			case DOWN:
+				trianglesX[i] = downTriX;
+				trianglesY[i] = downTriY;
+				break;
+			case LEFT:
+				trianglesX[i] = leftTriX;
+				trianglesY[i] = leftTriY;
+				break;
+			case RIGHT:
+				trianglesX[i] = rightTriX;
+				trianglesY[i] = rightTriY;
+				break;
+			}
+			i += 1;
+		}
+	}
+	private void makeTriangles() {
+		upTriX = new int[3];
+		downTriX = new int[3];
+		leftTriX = new int[3];
+		rightTriX = new int[3];
+		
+		upTriY = new int[3];
+		downTriY = new int[3];
+		leftTriY = new int[3];
+		rightTriY = new int[3];
+		
+		int p1 = Math.round((float)(25.0 - TRI_HEIGHT / Math.sqrt(3.0)));
+		int p2 = Math.round((float)(25.0 + TRI_HEIGHT / Math.sqrt(3.0)));
+		
+		// Left
+		leftTriX[0] = 0;
+		leftTriY[0] = 25;
+		leftTriX[1] = TRI_HEIGHT;
+		leftTriY[1] = p1;
+		leftTriX[2] = TRI_HEIGHT;
+		leftTriY[2] = p2;
+		
+		// Right - a reflection of LEFT about x = 25 
+		System.arraycopy(leftTriY, 0, rightTriY, 0, 3);
+		System.arraycopy(leftTriX, 0, rightTriX, 0, 3);
+		Arrays.setAll(rightTriX, i -> 50 - rightTriX[i]);
+		
+		// Up - swap x and y in LEFT
+		System.arraycopy(leftTriY, 0, upTriX, 0, 3);
+		System.arraycopy(leftTriX, 0, upTriY, 0, 3);
+		
+		// Down - a reflection of UP about y = 25
+		System.arraycopy(upTriX, 0, downTriX, 0, 3);
+		System.arraycopy(upTriY, 0, downTriY, 0, 3);
+		Arrays.setAll(downTriY, i -> 50 - downTriY[i]);
+	}
+	/*
+	 * Sets which directions the stone can be pushed to. In the same order as Direction.values()
+	 */
+	public void setPushes(boolean canPush[]) {
+		System.arraycopy(canPush, 0, this.canPush, 0, 4);
 	}
 	@Override
 	public Rectangle getBounds() {
@@ -107,7 +196,7 @@ public class Stone extends AbstractGraphicObj {
 		// Retains the previous state
 		Paint oldPaint = g2.getPaint();
 
-		// Fills the circle with solid color
+		// Fills the circle with solid colour
 		Color sphereCol = color;
 
 		g2.setColor(sphereCol);
@@ -128,7 +217,19 @@ public class Stone extends AbstractGraphicObj {
 		
 	}
 	protected void drawStonePushable(Graphics2D g) {
-		
+		drawStone(g, lightblue);
+		//TODO Draw green triangles to show directions of available pushes
+		Color save = g.getColor();
+		g.setColor(Color.GREEN);
+		for (int i=0; i<4; i++) {
+			if (canPush[i]) {
+				g.setColor(Color.GREEN);
+				g.fillPolygon(trianglesX[i], trianglesY[i], 3);
+				g.setColor(Color.BLACK);
+				g.drawPolygon(trianglesX[i], trianglesY[i], 3);
+			}
+		}
+		g.setColor(save);
 	}
 	@Override
 	protected void render(Graphics2D g) {
@@ -137,7 +238,7 @@ public class Stone extends AbstractGraphicObj {
 			drawStone(g, orange);
 			break;
 		case STONE_PUSHABLE:
-			drawStone(g, lightblue);
+			drawStonePushable(g);
 			break;
 		case STONE_SOLVER_NEXT:
 			drawStoneSolverNext(g);

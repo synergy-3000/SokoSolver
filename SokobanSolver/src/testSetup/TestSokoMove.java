@@ -1,6 +1,7 @@
 package testSetup;
 
 import java.awt.Rectangle;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +36,9 @@ class TestSokoMove {
 		System.out.println("Start testExecute");
 		PlayerMove[] moves = getMoves();
 		//moves[0].execute(null, null, null);
-		
+		int [] array = {1,2,3};
+		Arrays.setAll(array, i -> 50 - array[i]);
+		System.out.println("array[] ; " + array[0]+","+array[1]+","+array[2]);
 		System.out.println("Finish testExecute");
 	}
 

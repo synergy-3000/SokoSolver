@@ -1,5 +1,6 @@
 package gui;
 
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -14,14 +15,16 @@ import javax.swing.KeyStroke;
 
 //Add menus : completed
 //add a "Start again" menu item under  Edit menu
-//TODO Implement "Start again" code
+//Implement "Start again" code : completed
 //add undo, redo menu items under Edit menu : completed
 
 //add a "Show dead positions tick" check box menu item under "Preferences" menu : completed
 //add a "Preferences" menu : completed
 //add an "Edit" menu : completed
-//TODO add a ZSokoban menu at beginning
-//TODO add Quit ZSokoban under ZSokoban menu
+//add a ZSokoban menu at beginning : Done
+//add Quit ZSokoban under ZSokoban menu : Done
+
+//TODO Add a "Help" menu - "How to play"
 public class SokoMenu {
 	JMenuItem miUndo;
 	JMenuItem miRedo;
@@ -36,6 +39,38 @@ public class SokoMenu {
 		menuBar = new JMenuBar();
 
 		// Build the first menu.
+		menu = new JMenu("ZSokoban");
+		System.out.println("Font size: " + menu.getFont().getSize()); 
+		//menu.setFont(menu.getFont().deriveFont(Font.BOLD, 16f));
+		menu.setFont(menu.getFont().deriveFont(Font.BOLD));
+		menuBar.add(menu);
+		
+		// ZSokoban JMenuItems
+		menuItem = new JMenuItem("About ZSokoban");
+		menuItem.addActionListener(new ActionListener() {
+			//TODO Implement "About ZSokoban"
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//Controller.getInstance().();
+			}
+			
+		});
+		menu.add(menuItem);
+		menu.addSeparator();
+		
+		menuItem = new JMenuItem("Quit ZSokoban");
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.META_MASK));
+		menuItem.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Controller.getInstance().getFrame().dispose();
+			}
+			
+		});
+		menu.add(menuItem);
+		
+		// "Edit" Menu
 		menu = new JMenu("Edit");
 		menuBar.add(menu);
 

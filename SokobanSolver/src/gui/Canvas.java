@@ -6,7 +6,7 @@ import java.awt.geom.AffineTransform;
 
 import setup.GraphCreator;
 import setup.Maze;
-
+//Show pushable directions on each stone using green triangles : done
 public class Canvas {
 	
 	Maze maze;
@@ -21,20 +21,16 @@ public class Canvas {
 	int sSize;
 	AffineTransform save;
 	
-	int[][] reachable;
-	
-	public Canvas(Maze maze, GraphicObj player, Stone stone, GraphicObj[][] sokoSquares, int squareSize) {
+	public Canvas(Maze maze, GraphicObj player, GraphicObj[][] sokoSquares, int squareSize) {
 		sSize = squareSize;
 		canvas = sokoSquares;
 		clip = new Rectangle();
 		square = new Rectangle(0,0,squareSize,squareSize);
-		this.stone = stone;
 		this.player = player;
 		this.maze = maze;
 		playerRowCol = new int[2];
-		canPush = new boolean[Direction.values().length];
-		reachable = new int[maze.numRows()][maze.numCols()];
-	}
+		canPush = new boolean[4];
+	} 
 	public void draw(Graphics2D g) {
 		g.getClipBounds(clip);
 		System.out.println("Clip bounds: " + clip);
@@ -61,8 +57,7 @@ public class Canvas {
 		player.draw(g);
 		g.setTransform(save);
 		
-		// If last action was a push then update all boxes for pushable directions
-		// else just a player move so don't need to update boxes
+		// Draw stones
 		stoneLocs = maze.getBoxLocations();
 		
 		for (int i=0; i<stoneLocs.length; i++) {
@@ -73,49 +68,20 @@ public class Canvas {
 			if (clip.contains(square)) {
 				save = g.getTransform();
 				g.translate(x,y);
-				if (maze.isGoalSquare(stoneLocs[i][0], stoneLocs[i][1])) {
-					stone.setType(Stone.STONE_ON_GOAL);
-				}
-				else {
-//						GraphCreator.getGraphCreator().getPushableDirections(stoneLocs[i][0], stoneLocs[i][1], canPush, reachable);
-					stone.setType(Stone.STONE_ON_EMPTY_SQUARE);
-				}
-				stone.draw(g);
+				Controller.getInstance().getStone(stoneLocs[i][0], stoneLocs[i][1]).draw(g);
 				g.setTransform(save);
 			}
 		}
 	}
-	private void updateAllStones(Graphics2D g) {
-		int x,y;
-		reachable = maze.getDistances(playerRowCol[0], playerRowCol[1]);
-		for (int i=0; i<stoneLocs.length; i++) {
-			x = stoneLocs[i][1] * sSize;
-			y = stoneLocs[i][0] * sSize;
-			square.setLocation(x,y);
-			
-			save = g.getTransform();
-			g.translate(x,y);
-			if (maze.isGoalSquare(stoneLocs[i][0], stoneLocs[i][1])) {
-				stone.setType(Stone.STONE_ON_GOAL);
-			}
-			else {
-				GraphCreator.getGraphCreator().getPushableDirections(stoneLocs[i][0], stoneLocs[i][1], canPush, reachable);
-			}
-				stone.setType(Stone.STONE_ON_EMPTY_SQUARE);
-			stone.draw(g);
-			g.setTransform(save);
-		}
-		
-	}
 	public int getMazeSquareSize() {
 		return sSize;
 	}
-	public void xytoRowCol(int[] xy, int[] rowcol) {
+	/*public void xytoRowCol(int[] xy, int[] rowcol) {
 		rowcol[0] = xy[0]/sSize;
 		rowcol[1] = xy[1]/sSize;
 	}
 	public void rowColToxy(int[] rowcol, int[] xy) {
 		xy[0] = rowcol[0] * sSize;
 		xy[1] = rowcol[1] * sSize;
-	}
+	}*/
 }

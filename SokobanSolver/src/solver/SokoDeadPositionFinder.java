@@ -227,17 +227,6 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 		nodeIds = Arrays.copyOf(nodeIds, nodeIds.length + MAX_PUSHES);
 		pushes = Arrays.copyOf(pushes, pushes.length + MAX_PUSHES);
 	}
-
-	private boolean isNextNode(int[] pushes, Node nextNode, Node curNode, int indexPos, int step) {
-		boolean retVal = false;
-		if (pushes[indexPos] == (step - 1)) {
-			if (nextNode.canPushTo(curNode.getId())) {
-				retVal = true;
-			}
-		}
-		return retVal;
-	}
-
 	class DistancesComparator implements Comparator<Integer> {
 
 		int[] pushDistances;
