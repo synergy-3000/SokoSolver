@@ -17,19 +17,24 @@ import gui.Direction;
 import solver.MyMazePosition;
 import utils.Utils;
 
+/*
+ * This class was a first attempt to read a single maze. Now the class <>CollectionsReader reads
+ * files containing multiple mazes.
+ */
 public class Reader implements MazeReader {
 	
 	boolean debug = true;
 	
 	private static Reader myReader;
 	String SOKOBAN_HEADER = "Sokoban";
-	final char SPACE_OUTSIDE_MAZE = ' ';
-	final char SPACE_INSIDE_MAZE = '0';
-	final char WALL = '#';
-	final char PLAYER = 'P';
-	final char BOX = 'B';
-	final char GOAL_SQUARE = 'X';
-	final char BOX_ON_GOAL = 'T';    // Box on a goal square
+	
+	static final char SPACE_OUTSIDE_MAZE = ' ';
+	static final char SPACE_INSIDE_MAZE = '0';
+	static final char WALL = '#';
+	static final char PLAYER = '@';
+	static final char BOX = '$';
+	static final char GOAL_SQUARE = '.';
+	static final char BOX_ON_GOAL = '*';    // Box on a goal square
 	
 	int numRows, numCols;
 	String errMsg;

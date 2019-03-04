@@ -25,14 +25,14 @@ import solver.SokoDeadPositionFinder;
 //TODO Paint squares outside maze in dark blue?
 //TODO Add "Show Grid" checkbox menu item under "Preferences" menu
 //TODO update ReadMe file in my repository on GitHUb
-//TODO Get a local version of java api doc
+//Get a local version of java api doc : done
 //TODO Investigate lambda expressions
 //TODO Add "Show Available Pushes" check box item under "Preferences" Menu
 //TODO Make a distribution, jar file ?, of java project 
 //TODO show total number of pushes 
 
 //   ... create a big mazeChars[][] and record the start and finish row in mazeChars[][] for each maze.
-// Also record the max for states and spaces.
+//Also record the max for states and spaces.
 //detect when all stones are on goal squares and display a "Well Done!!" message : completed
 //move execute() code from BoxPush and PlayerMove to PushCmd and MoveCmd: completed
 public class Controller implements KeyListener {
