@@ -41,8 +41,9 @@ public class CollectionsReader {
 		rows = new ArrayList<char[]>();
 	}
 	
-	public void readCollection(File file) {
+	public List<MazeState> readCollection(File file) {
 		BufferedReader d;
+		ArrayList<MazeState> coll = new ArrayList<MazeState>();
 		
 		try {
 			d = new BufferedReader(new FileReader(file));
@@ -58,6 +59,7 @@ public class CollectionsReader {
 						List<char[]> maze = rows.subList(rowBegin[nMazes], nRows);
 						System.out.printf("Maze %d ", nMazes);
 						MazeState ms = Maze.parseMazeChars(maze.toArray(new char[maze.size()][]));
+						coll.add(ms);
 						System.out.println(ms);
 						nMazes++;
 						newMaze = true;
@@ -79,6 +81,6 @@ public class CollectionsReader {
 		catch (IOException e) {
 			System.err.println(e.getMessage());		
 		}
-		
+		return coll;
 	}
 }

@@ -34,7 +34,7 @@ class TestSokoMove {
 	@Test
 	void testExecute() {
 		System.out.println("Start testExecute");
-		PlayerMove[] moves = getMoves();
+		//PlayerMove[] moves = getMoves();
 		//moves[0].execute(null, null, null);
 		int [] array = {1,2,3};
 		Arrays.setAll(array, i -> 50 - array[i]);
@@ -45,9 +45,9 @@ class TestSokoMove {
 	@Test
 	void testIsEnabled() {
 		System.out.println("Start testIsEnabled");
-		for (PlayerMove move : PlayerMove.values()) {
+		//for (PlayerMove move : PlayerMove.values()) {
 			//move.execute(null, null, null);
-		}
+		//}
 		System.out.println("Finish testIsEnabled");
 	}
 

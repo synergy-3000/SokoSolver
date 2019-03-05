@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import setup.Maze;
 import setup.MazePosition;
 import setup.MazeReader;
-import setup.Reader;
 import solver.MyMazePosition;
 
 class TestReader {
@@ -18,7 +17,6 @@ class TestReader {
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		aReader = Reader.getReader();
 	}
 	
 

@@ -1,5 +1,9 @@
 package setup;
 
+import java.util.Arrays;
+
+import utils.Utils;
+
 /**
  * Decided this class is unnecessary. Changed mind again! Decided to use it because it
  * seems silly for the Maze class to keep re-parsing mazeChars[][] every time a new
@@ -25,12 +29,13 @@ public class MazeState {
 
 	MazeState(int[] player, int[][] stoneLocs, int numStones, int numRows, int numCols, int[][] goalLocs,
 			char[][] mazeChars, long numStates, int numSpaces) {
-		this.player = player; 
-		this.stoneLocs = stoneLocs; 
+		
+		this.player = Arrays.copyOf(player, 2);
+		this.stoneLocs = Utils.copyArray(stoneLocs);
 		this.numStones = numStones;
 		this.numRows = numRows;
 		this.numCols = numCols;
-		this.goalLocs = goalLocs;
+		this.goalLocs = Utils.copyArray(goalLocs);
 		this.mazeChars = mazeChars; 
 		this.numStates = numStates;
 		this.numSpaces = numSpaces;

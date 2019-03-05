@@ -1,15 +1,18 @@
 package testSetup;
 
 import java.io.File;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import setup.CollectionsReader;
 import setup.Graph;
 import setup.GraphCreator;
 import setup.Maze;
-import setup.Reader;
+import setup.MazeState;
+import setup.SokoMaze;
 import solver.SokoDeadPositionFinder;
 
 // Investigate connecting Eclipse to GitHub - Ans: Use EGit which is automatically installed with Eclipse Photon 
@@ -19,12 +22,12 @@ import solver.SokoDeadPositionFinder;
 //
 class TestSokoDeadPositionFinder {
 	File file;
-	Reader aReader;
 	SokoDeadPositionFinder finder;
+	private List<MazeState> mazeStates;
+	private SokoMaze maze;
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		aReader = Reader.getReader();
 	}
 
 	@AfterEach
@@ -39,7 +42,8 @@ class TestSokoDeadPositionFinder {
 	void testGetAllDeadPositions() {
 		
 		file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
-		Maze maze = aReader.readMaze(file);
+		mazeStates = new CollectionsReader().readCollection(file);
+		maze = SokoMaze.getInstance(mazeStates.get(0));
 		GraphCreator gc = GraphCreator.getGraphCreator();
 		Graph graph = gc.createPushGraph(maze);
 		finder = SokoDeadPositionFinder.getInstance();
@@ -58,7 +62,8 @@ class TestSokoDeadPositionFinder {
 	void testGetPathToGoal() {
 		//file = new File("/Users/zhipinghe/Desktop/SokobanMaze2.txt");
 		file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
-		Maze maze = aReader.readMaze(file);
+		mazeStates = new CollectionsReader().readCollection(file);
+		maze = SokoMaze.getInstance(mazeStates.get(0));
 		GraphCreator gc = GraphCreator.getGraphCreator();
 		Graph graph = gc.createPushGraph(maze);
 		

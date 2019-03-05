@@ -20,7 +20,7 @@ class TestCollectionsReader {
 
 	@Test
 	void testReadCollection() {
-		File file = new File("/Users/zhipinghe/Desktop/ThreeSokoMazes.txt");
+		File file = new File("/Users/zhipinghe/Desktop/SokobanOriginalLevels.txt");
 		new CollectionsReader().readCollection(file);
 	}
 

@@ -1,29 +1,28 @@
 package testSetup;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import setup.CollectionsReader;
 import setup.Graph;
 import setup.GraphCreator;
-import setup.Maze;
-import setup.MazeReader;
+import setup.MazeState;
 import setup.Node;
-import setup.Reader;
+import setup.SokoMaze;
 
 class TestPushBoxSoftNode {
-	MazeReader aReader;
 	File file;
+	private List<MazeState> mazeStates;
+	private SokoMaze maze;
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		aReader = Reader.getReader();
 	}
 
 	@AfterEach
@@ -34,9 +33,11 @@ class TestPushBoxSoftNode {
 	}
 	@Test
 	void testVisit() {
-		//file = new File("/Users/zhipinghe/Desktop/SokobanMaze2.txt");
 		file = new File("/Users/zhipinghe/Desktop/SokobanMaze3.txt");
-		Maze maze = aReader.readMaze(file);
+		mazeStates = new CollectionsReader().readCollection(file);
+		maze = SokoMaze.getInstance(mazeStates.get(0));
+		//file = new File("/Users/zhipinghe/Desktop/SokobanMaze2.txt");
+		
 		GraphCreator gc = GraphCreator.getGraphCreator();
 		Graph graph = gc.createPushGraph(maze);
 		Node[] nodes = graph.getNodes();

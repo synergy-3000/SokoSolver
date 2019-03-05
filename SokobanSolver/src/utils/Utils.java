@@ -1,10 +1,30 @@
 package utils;
 
+import java.util.Arrays;
+
+import gui.Controller;
 import setup.GraphCreator;
 import setup.Maze;
-import setup.Reader;
 
 public class Utils {
+	
+	public static int[][] copyArray(int[][] array) {
+		int[][] copy = new int[array.length][];
+		for (int i=0; i<array.length; i++) {
+			copy[i] = Arrays.copyOf(array[i], array[i].length);
+		}
+		return copy;
+	}
+	public static void copyArray(char[][] toArray, char[][] frArray) {
+		for(int i=0; i<frArray.length; i++) {
+			System.arraycopy(frArray[i], 0, toArray[i], 0, frArray[i].length);
+		}
+	}
+	public static void fill(char[][] array, char value) {
+		for (int i=0; i<array.length; i++) {
+			Arrays.fill(array[i], value);
+		}
+	}
 	//static 
 	// Debug
 	public static void printDistances(Maze maze, int distances[][]) {
@@ -96,9 +116,7 @@ public class Utils {
 	}
 	public static void printMaze() {
 		
-		Reader reader = Reader.getReader();
-		Maze maze = reader.getMaze();
-		int nEmpty = GraphCreator.getGraphCreator().getNodes().length;
+		Maze maze = Controller.getInstance().getMaze();
 		
 		int numRows = maze.numRows();
 		int numCols = maze.numCols();

@@ -218,7 +218,7 @@ public class Stone extends AbstractGraphicObj {
 	}
 	protected void drawStonePushable(Graphics2D g) {
 		drawStone(g, lightblue);
-		//TODO Draw green triangles to show directions of available pushes
+		//Draw green triangles to show directions of available pushes : done
 		Color save = g.getColor();
 		g.setColor(Color.GREEN);
 		for (int i=0; i<4; i++) {

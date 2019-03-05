@@ -186,7 +186,7 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 			}
 			
 			Utils.printArray(path, "path", path.length);
-			Utils.printMaze();
+			//Utils.printMaze(graph.g);
 
 			return path;
 		} else {

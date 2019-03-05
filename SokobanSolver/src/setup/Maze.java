@@ -26,10 +26,11 @@ public interface Maze {
 	public void setEmptyAt(int row, int col);
 	public boolean[] getIsGoalNode();    // true for nodeId = a goal node
 	public boolean allStonesOnGoals();
+	public void setNewMaze(MazeState ms);
 	
 	/*
-	 * This method should be in the Reader class.
-	 * mazeChars[][] is not necessarily rectangular
+	 * This method should be in either the Reader class or SokoMaze class 
+	 * Note: mazeChars[][] is not necessarily rectangular
 	 */
 	public static MazeState parseMazeChars(char[][] mazeChars) {
 		 int[] player = new int[2]; // Row and Column of player position
@@ -54,7 +55,7 @@ public interface Maze {
 			 Arrays.fill(visited[r], false);
 			 numCols = (mazeChars[r].length > numCols) ? mazeChars[r].length : numCols;
 			 if (!playerFound) {
-				 player[1] = indexOf(mazeChars[r], Reader.PLAYER);
+				 player[1] = indexOf(mazeChars[r], SokoMaze.PLAYER);
 				 player[0] = r;
 				 playerFound = (player[1] >= 0);
 			 }
@@ -63,7 +64,7 @@ public interface Maze {
 	     * Fill interior with '0' to denote a square inside the maze. Algorithm expects this.
 	     */
 		Deque<int[]> queue = new LinkedList<int[]>();
-		mazeChars[player[0]][player[1]] = Reader.SPACE_INSIDE_MAZE;
+		mazeChars[player[0]][player[1]] = SokoMaze.SPACE_INSIDE_MAZE;
 		numSpaces = 1;
 		visited[player[0]][player[1]] = true;
 		queue.add(player);
@@ -78,22 +79,22 @@ public interface Maze {
 				r = square[0] + dy[i];
 				c= square[1] + dx[i];
 				ch = mazeChars[r][c];
-				if (!visited[r][c] && (ch != Reader.WALL)) {
+				if (!visited[r][c] && (ch != SokoMaze.WALL)) {
 					
 					child = addChild(r, c, queue, visited);
 					numSpaces += 1;
 					
 					switch(ch) {
-					case Reader.BOX_ON_GOAL:
+					case SokoMaze.BOX_ON_GOAL:
 						goals.add(child);
-					case Reader.BOX:
+					case SokoMaze.BOX:
 						stones.add(child);
 						break;
-					case Reader.GOAL_SQUARE:
+					case SokoMaze.GOAL_SQUARE:
 						goals.add(child);
 						break;
 					case ' ':
-						mazeChars[r][c] = Reader.SPACE_INSIDE_MAZE;
+						mazeChars[r][c] = SokoMaze.SPACE_INSIDE_MAZE;
 						break;
 					default: 
 						;
@@ -119,7 +120,7 @@ public interface Maze {
 		int index = -1;
 		for (int i=0; i<array.length && (index<0); i++) {
 			index = (array[i] == ch) ? i : -1;
-		}  //461,738,052,776
+		}  
 		return index;
 	}
 	private static long nCr(int n, int r) {

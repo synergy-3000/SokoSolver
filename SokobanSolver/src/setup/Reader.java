@@ -21,20 +21,15 @@ import utils.Utils;
  * This class was a first attempt to read a single maze. Now the class <>CollectionsReader reads
  * files containing multiple mazes.
  */
-public class Reader implements MazeReader {
+//TODO Extract MyMaze into a separate file and rename to SokoMaze
+/*public class Reader implements MazeReader {
 	
 	boolean debug = true;
 	
 	private static Reader myReader;
 	String SOKOBAN_HEADER = "Sokoban";
 	
-	static final char SPACE_OUTSIDE_MAZE = ' ';
-	static final char SPACE_INSIDE_MAZE = '0';
-	static final char WALL = '#';
-	static final char PLAYER = '@';
-	static final char BOX = '$';
-	static final char GOAL_SQUARE = '.';
-	static final char BOX_ON_GOAL = '*';    // Box on a goal square
+	
 	
 	int numRows, numCols;
 	String errMsg;
@@ -56,6 +51,8 @@ public class Reader implements MazeReader {
 	private Reader() {
 		player = new int[2];
 	}
+	//TODO This method has been replaced by Maze.parseChars(char[][] mazeChars) together 
+	//     with CollectionsReader.readCollection(File file) 
 	@Override
 	public Maze readMaze(File file) {
 		
@@ -112,7 +109,7 @@ public class Reader implements MazeReader {
 						player[0] = r;
 						player[1] = c;
 					}
-					if ( (ch == BOX) || (ch == BOX_ON_GOAL)) {
+					if ((ch == BOX) || (ch == BOX_ON_GOAL)) {
 						coord = new int[2];
 						coord[0] = r;
 						coord[1] = c;
@@ -214,240 +211,9 @@ public class Reader implements MazeReader {
 			return col;
 		}
 	}
-	class MyMaze implements Maze {
-		
-		int[] playerRowCol = new int[2];
-		boolean[] isGoalNode; // true if node id = goal node
-		int[] from = new int[2];
-		int[] to = new int[2];
-		//change getDistances(..) so it doesn't keep allocating a new array each call : done
-		@Override
-		public void getDistances(int startRow, int startCol, int[][] distances) {
-			if(!inArrayBounds(startRow, startCol)) {
-				errMsg = String.format("Invalid start position (%d,%d)", startRow,startCol);
-				throw new ArrayIndexOutOfBoundsException(errMsg);
-			}
-			assumingThat(debug, new Executable() {
-				public void execute() throws Throwable {
-					if (isOutsideMaze(startRow, startCol)) {
-						errMsg = String.format("(row %d, col %d) is outside the maze", startRow,startCol);
-						throw new Throwable(errMsg);
-						//System.err.println(errMsg);
-					}
-					if (isWall(startRow, startCol)) {
-						errMsg = String.format("A wall is located at position (row %d, col %d)!!!", startRow,startCol);
-						throw new Throwable(errMsg);
-						//System.err.println(errMsg);
-					}
-				};
-			});
-			// Do a BFS (Breadth First Search) on Maze Array
-			LinkedList<MazeCell> queue = new LinkedList<MazeCell>();
-			queue.add(getMazeCell(startRow,startCol));
-			for (int i=0; i<numRows; i++) {
-				Arrays.fill(distances[i], -1);
-			}
-			distances[startRow][startCol] = 0;
-			
-			while (!queue.isEmpty()) {
-				MazeCell mc = queue.poll();
-				MazeCell[] neighbours = mc.getNeighbours();
-				
-				for (MazeCell neighbour : neighbours) {
-					if ( distances[neighbour.getRow()][neighbour.getCol()] == -1) {
-						distances[neighbour.getRow()][neighbour.getCol()] = distances[mc.getRow()][mc.getCol()] + 1;
-						queue.add(neighbour);
-					}
-				}
-			}
-			// Print distances array
-			
-			assumingThat(debug, new Executable() {
-				public void execute() throws Throwable {
-					String outStr = String.format("Distances from (%d,%d)",startRow,startCol);
-					System.out.println(outStr);
-					
-					for (int i=0; i<numRows; i++) {
-						String strRow = "";
-						for (int j=0; j<numCols; j++) {
-							String toAdd = "";
-							if(isWall(i,j) || isOutsideMaze(i,j) || isBox(i,j)) {
-								toAdd = String.valueOf(mazeChars[i][j]);
-							}
-							else {
-								toAdd = String.valueOf(distances[i][j]);
-							}
-							if (toAdd.length() == 1) toAdd = "+" + toAdd;
-							strRow = strRow + toAdd;
-						}
-						System.out.println(strRow);
-					}
-				}
-			});
-		}
-
-		@Override
-		public int numRows() {
-			return numRows;
-		}
-
-		@Override
-		public int numCols() {
-			return numCols;
-		}
-		
-		public boolean isOutsideMaze(int row, int col) {
-			return (mazeChars[row][col] == SPACE_OUTSIDE_MAZE);
-		}
-		
-		@Override
-		public boolean isWall(int row, int col) {
-			return (mazeChars[row][col] == WALL);
-		}
-
-		@Override
-		public boolean isBox(int row, int col) {
-			
-			return ((mazeChars[row][col] == BOX) || (mazeChars[row][col] == BOX_ON_GOAL));
-		}
-
-		@Override
-		public boolean isGoalSquare(int row, int col) {
-			// We do this differently because a Box and goal can be on the same square
-			boolean retVal = false;
-			for (MazePosition mp : goalSquares) {
-				if (mp.getRow() == row && mp.getCol() == col) {
-					retVal = true;
-					break;
-				}
-			}
-			return retVal;
-		}
-
-		@Override
-		/* Returns row and column location of player
-		 * (non-Javadoc)
-		 * @see setup.Maze#getPlayerLocation()
-		 */
-		public void getPlayerLocation(int[] coord) {
-			coord[0] = playerRowCol[0];
-			coord[1] = playerRowCol[1];
-		}
-
-		@Override
-		public int[][] getBoxLocations() {
-			return boxes;
-		}
-
-		@Override
-		public boolean isEmpty(int row, int col) {
-			return ( !isWall(row, col) && !isBox(row, col) );
-		}
-
-		@Override
-		public void setPlayerLocation(int[] newPos) {
-			playerRowCol[0] = newPos[0];
-			playerRowCol[1] = newPos[1];
-		}
-
-		@Override
-		public void setBoxAt(int row, int col) {
-			mazeChars[row][col] = BOX;
-		}
-
-		@Override
-		public void setEmptyAt(int row, int col) {
-			if (isGoalSquare(row, col)) {
-				mazeChars[row][col] = GOAL_SQUARE;
-			}
-			else {
-				mazeChars[row][col] = SPACE_INSIDE_MAZE;
-			}
-		}
-
-		@Override
-		/* Return array true if node id = goal node
-		 * */
-		public boolean[] getIsGoalNode() {
-			if (isGoalNode == null) {
-				ArrayList<Integer> goals = new ArrayList<Integer>();
-				
-				int nEmpty = 0; // No. of empty squares in Maze
-				int nRows=numRows(),nCols=numCols();
-				for (int r=0; r<nRows; r++) {
-					for (int c=0; c<nCols; c++) {
-						if (isGoalSquare(r, c)) {
-							goals.add(nEmpty);
-							nEmpty += 1;
-						}
-						else if(!isWall(r, c) && !isOutsideMaze(r, c)) {
-							nEmpty += 1;
-						}
-					}
-				}
-				isGoalNode = new boolean[nEmpty];
-				Arrays.fill(isGoalNode, false);
-				for (int id : goals) {
-					isGoalNode[id] = true;
-				}
-			}
-			// Debug print isGoalNode
-			Utils.printArray(isGoalNode, "isGoalNode", isGoalNode.length);
-			
-			return isGoalNode;
-		}
-
-		@Override
-		public void moveBox(int row, int col, Direction dirn) {
-			setEmptyAt(row,col);
-			from[0] = row;
-			from[1] = col;
-			dirn.getToPosition(from, to);
-			setBoxAt(to[0],to[1]);
-
-			boolean updated = false;
-			for (int i=0; (i< boxes.length) && !updated; i++) {
-				if ( (row == boxes[i][0]) && (col == boxes[i][1]) ) {
-					boxes[i][0] = to[0];
-					boxes[i][1] = to[1];
-					updated = true;
-				}
-			}
-		}
-
-		@Override
-		public void movePlayer(Direction dirn) {
-			int pr = playerRowCol[0];
-			int pc = playerRowCol[1];
-			setEmptyAt(pr,pc);
-			from[0] = pr; from[1] = pc;
-			dirn.getToPosition(from, playerRowCol);
- 		}
-		// test "Start Again" bug : fixed 
-		@Override
-		public void setBoxLocations(int[][] coords) {
-			for (int[] oldCoord : boxes) {
-				setEmptyAt(oldCoord[0], oldCoord[1]);
-			}
-			for (int i=0; i<boxes.length; i++) {
-				for (int j=0; j<2; j++) {
-					setBoxAt(coords[i][0], coords[i][1]);
-					boxes[i][j] = coords[i][j];
-				}
-			}
-		}
-
-		@Override
-		public boolean allStonesOnGoals() {
-			boolean all = true;
-			for (int i=0; i<boxes.length && all; i++) {
-				all = maze.isGoalSquare(boxes[i][0], boxes[i][1]);
-			}
-			return all;
-		}
-	}
+	
 	@Override
 	public Maze getMaze() {
 		return maze;
 	}
-}
+}*/

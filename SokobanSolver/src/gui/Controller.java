@@ -12,14 +12,17 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import setup.CollectionsReader;
 import setup.Graph;
 import setup.GraphCreator;
 import setup.Maze;
-import setup.Reader;
+import setup.MazeState;
+import setup.SokoMaze;
 import solver.SokoDeadPositionFinder;
 
 //TODO Paint squares outside maze in dark blue?
@@ -76,7 +79,8 @@ public class Controller implements KeyListener {
 	
 	int[][] reachable;
 	private boolean[] canPush;
-	
+	private List<MazeState> mazeStates;
+	private int currMaze;
 	
 	public static Controller getInstance() {
 		if (instance == null) {
@@ -89,8 +93,10 @@ public class Controller implements KeyListener {
 		
 		history = new ArrayList<Cmd>();
 		
-		File file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
-		maze = Reader.getReader().readMaze(file);
+		File file = new File("/Users/zhipinghe/Desktop/SokobanOriginalLevels.txt");
+		mazeStates = new CollectionsReader().readCollection(file);
+		maze = SokoMaze.getInstance(mazeStates.get(0));
+		currMaze = 0;
 		gc = GraphCreator.getGraphCreator();
 		Graph graph = gc.createPushGraph(maze);
 		SokoDeadPositionFinder finder = SokoDeadPositionFinder.getInstance();
@@ -119,7 +125,8 @@ public class Controller implements KeyListener {
 			isGoal[gc.getNodeRow(i)][gc.getNodeCol(i)] = goalIds[i];
 		}
 		// The finding dead positions algorithm clears all the boxes from the maze so
-		// need to put them back!
+		// need to put them back! 
+		//TODO restore boxes in the finding dead positions algorithm
 		int[][] boxLocs = maze.getBoxLocations();
 		for (int i=0; i<boxLocs.length; i++) {
 			maze.setBoxAt(boxLocs[i][0], boxLocs[i][1]);
@@ -442,7 +449,9 @@ public class Controller implements KeyListener {
 	public int[][] getReachable() {
 		return reachable;
 	}
-
+	public Maze getMaze() {
+		return maze;
+	}
 	public GraphicObj getStone(int row, int col) {
 		Stone stone;
 		if (maze.isGoalSquare(row, col)) {

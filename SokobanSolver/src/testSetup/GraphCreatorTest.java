@@ -1,25 +1,24 @@
 package testSetup;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.io.File;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import setup.CollectionsReader;
 import setup.GraphCreator;
-import setup.Maze;
-import setup.MazeReader;
-import setup.Reader;
+import setup.MazeState;
+import setup.SokoMaze;
 
 class GraphCreatorTest {
-	MazeReader aReader;
 	File file;
+	private List<MazeState> mazeStates;
+	private SokoMaze maze;
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		aReader = Reader.getReader();
 	}
 
 	@AfterEach
@@ -34,14 +33,11 @@ class GraphCreatorTest {
 
 	@Test
 	void testCreatePushGraph() {
-		file = new File("/Users/zhipinghe/Desktop/SokobanMaze2.txt");
+		file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
 		//file = new File("/Users/zhipinghe/Desktop/SokobanMaze3.txt");
-		Maze maze = aReader.readMaze(file);
+		mazeStates = new CollectionsReader().readCollection(file);
+		maze = SokoMaze.getInstance(mazeStates.get(0));
 		GraphCreator gc = GraphCreator.getGraphCreator();
 		gc.createPushGraph(maze);
-		
-		
-		
 	}
-
 }
