@@ -12,8 +12,8 @@ public class GraphCreator implements Graph {
 	
 	int PermanentEdgesTo[][];   // The player can reach all sides of the box at this position
 	int PermanentEdgesFrom[][];
-	int SoftEdgesTo[][];	// These edges of the graph change depending on the player position
-	int SoftEdgesFrom[][];  // because the player cannot reach at least one side of the box. 
+	int SoftEdgesTo[][];		// These edges of the graph change depending on the player position
+	int SoftEdgesFrom[][];  	// because the player cannot reach at least one side of the box. 
 	int nFrom[], nTo[];
 	Node nodes[];
 	int ids[][], nNodes, nodeRows[], nodeColumns[];
@@ -245,7 +245,8 @@ public class GraphCreator implements Graph {
 		String s = String.format("Pushes for stone at (%d,%d): ", boxRow,boxCol);
 		int j = 0;
 		for (Direction dirn : Direction.values()) {
-			s += canPush[j] ?  dirn : " ";
+			s += canPush[j] ?  dirn : "";
+			s += " ";
 			++j;
 		}
 		System.out.println(s);

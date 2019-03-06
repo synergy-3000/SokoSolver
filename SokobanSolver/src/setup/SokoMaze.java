@@ -11,8 +11,10 @@ import gui.Direction;
 import utils.Utils;
 
 public class SokoMaze implements Maze {
-	static final int MAX_ROWS = 20;
-	static final int MAX_COLS = 20;
+	public static final int MAX_ROWS = 20;
+	public static final int MAX_COLS = 20;
+	
+	public static final int MAX_SPACES = 255;   // The maximum number of empty squares inside the maze
 	
 	static final char SPACE_OUTSIDE_MAZE = ' ';
 	static final char SPACE_INSIDE_MAZE = '0';
@@ -24,7 +26,7 @@ public class SokoMaze implements Maze {
 	
 	private static SokoMaze instance;
 	
-	//TODO Implement setNewMaze(MazeState ms)
+	//Implement setNewMaze(MazeState ms) : done
 	private int[][] stoneLocs;   	  // r,c of stones
 	private int numStones;
 	private int numRows;
@@ -38,7 +40,7 @@ public class SokoMaze implements Maze {
 	boolean debug = true;
 	String errMsg;
 	
-	boolean[] isGoalNode; 			  // true if node id = goal node
+	boolean[] isGoalNode;	// true if node id = goal node
 	int[] from = new int[2];
 	int[] to = new int[2];
 	int[] dx = {-1, 0,0,1};
@@ -55,6 +57,7 @@ public class SokoMaze implements Maze {
 	private SokoMaze(MazeState ms) {
 		coords = new Coord[MAX_ROWS][MAX_COLS]; 
 		mazeChars = new char[MAX_ROWS][MAX_COLS];
+		isGoalNode = new boolean[MAX_SPACES];
 		
 		setNewMaze(ms);
 	}
@@ -207,12 +210,10 @@ public class SokoMaze implements Maze {
 			mazeChars[row][col] = SPACE_INSIDE_MAZE;
 		}
 	}
-
-	@Override
-	/* Return array true if node id = goal node
-	 * */
-	public boolean[] getIsGoalNode() {
-		if (isGoalNode == null) {
+	/*
+	 * Initialise boolean isGoalNode[]
+	 */
+	private void initIsGoalNode() {
 			ArrayList<Integer> goals = new ArrayList<Integer>();
 			
 			int nEmpty = 0; // No. of empty squares in Maze
@@ -228,15 +229,17 @@ public class SokoMaze implements Maze {
 					}
 				}
 			}
-			isGoalNode = new boolean[nEmpty];
 			Arrays.fill(isGoalNode, false);
 			for (int id : goals) {
 				isGoalNode[id] = true;
 			}
-		}
 		// Debug print isGoalNode
 		Utils.printArray(isGoalNode, "isGoalNode", isGoalNode.length);
-		
+	}
+	@Override
+	/* Return array true if node id = goal node
+	 * */
+	public boolean[] getIsGoalNode() {
 		return isGoalNode;
 	}
 
@@ -304,7 +307,7 @@ public class SokoMaze implements Maze {
 	}
 	@Override
 	public void setNewMaze(MazeState ms) {
-		 
+		
 		 stoneLocs = ms.stoneLocs;   	  // r,c of stones
 		 numStones = ms.numStones;
 		 numRows = ms.numRows;
@@ -316,5 +319,7 @@ public class SokoMaze implements Maze {
 		 numStates = ms.numStates;
 		 numSpaces = ms.numSpaces;
 		 playerRowCol = ms.player;  // Row and Column of player position
+		 
+		 initIsGoalNode();
 	}
 }

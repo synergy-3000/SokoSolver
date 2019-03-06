@@ -11,7 +11,7 @@ import setup.GraphCreator;
 import setup.Maze;
 import setup.Node;
 import utils.Utils;
-
+//TODO Change so that new arrays aren't allocated each call to getPathToGoal and getDeadPositions
 public class SokoDeadPositionFinder implements DeadPositionFinder {
 
 	static SokoDeadPositionFinder instance;
@@ -65,6 +65,7 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 					pNode = gc.getPlayerNodeForPush(id, Direction.LEFT);
 				}
 				if (pNode != -1) {
+					//System.out.println("getPathToGoal(...) id:%d");
 					path = getPathToGoal(graph, id, goals, pNode);
 					isDead = (path == null);
 				}
@@ -92,11 +93,11 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 
 		nPushes = 0;
 		nodes = graph.getNodes();
-		if (nodeIds == null) {
+		//if (nodeIds == null) {
 			nodeIds = new int[MAX_PUSHES];
 			pushes = new int[MAX_PUSHES];
 			parent = new int[nodes.length*4];
-		}
+		//}
 
 		
 		nNodes = nodes.length;

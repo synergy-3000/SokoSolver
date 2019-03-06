@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-//TODO Read in all puzzles from ClassicLevels file show # Rows # Cols # Boxes # Spaces # States
+//Read in all puzzles from ClassicLevels file show # Rows # Cols # Boxes # Spaces # States : done
 //TODO When setting a new maze state will also need to re-create the graph
 //TODO calc max of numStates
 /*

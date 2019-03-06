@@ -22,22 +22,28 @@ public class Canvas {
 	AffineTransform save;
 	
 	public Canvas(Maze maze, GraphicObj player, GraphicObj[][] sokoSquares, int squareSize) {
-		sSize = squareSize;
-		canvas = sokoSquares;
 		clip = new Rectangle();
 		square = new Rectangle(0,0,squareSize,squareSize);
 		this.player = player;
-		this.maze = maze;
 		playerRowCol = new int[2];
 		canPush = new boolean[4];
+		canvas = sokoSquares;
+		
+		setNewMaze(maze, squareSize);
 	} 
+	public void setNewMaze(Maze newMaze, int newSquareSize) {
+		square.setBounds(0, 0, newSquareSize, newSquareSize);;
+		maze = newMaze;
+		sSize = newSquareSize;
+	}
 	public void draw(Graphics2D g) {
 		g.getClipBounds(clip);
 		System.out.println("Clip bounds: " + clip);
 		int x,y;
+		int nRows = maze.numRows(), nCols = maze.numCols();
 		
-		for(int r=0; r<canvas.length; r++) {
-			for (int c=0; c<canvas[r].length; c++) {
+		for(int r=0; r<nRows; r++) {
+			for (int c=0; c<nCols; c++) {
 				x = c * sSize;
 				y = r * sSize;
 				square.setLocation(x, y);

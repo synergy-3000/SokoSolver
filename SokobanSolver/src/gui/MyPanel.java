@@ -95,11 +95,12 @@ public class MyPanel extends JPanel {
         
         
     }
-    public void setDrawingWidth(int width) {
-    	drawingWidth = width;
-    }
-    public void setDrawingHeight(int height) {
-    	drawingHeight = height;
+    public void setDrawingWidthHeight(int dWidth, int dHeight) {
+    	drawingWidth = dWidth;
+    	drawingHeight = dHeight;
+    	personLoc.setSize(dWidth, dHeight);
+    	dv.setX(drawingWidth);
+        person.setDrawingArea(drawingWidth, drawingHeight);
     }
     private void printRGB(String s, Color color) {
     	int red = color.getRed();

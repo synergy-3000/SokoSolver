@@ -82,33 +82,67 @@ public class Controller implements KeyListener {
 	private List<MazeState> mazeStates;
 	private int currMaze;
 	
+	private SokoDeadPositionFinder finder;
+	
 	public static Controller getInstance() {
 		if (instance == null) {
 			instance = new Controller();
 		}
 		return instance;
 	}
-	
+	/*
+	 * TODO A lot of the code in the constructor needs to be placed
+	   in a method setNewMaze(MazeState ms) called when a new MazeState is set.
+	*/
 	private Controller() {
 		
 		history = new ArrayList<Cmd>();
-		
-		File file = new File("/Users/zhipinghe/Desktop/SokobanOriginalLevels.txt");
-		mazeStates = new CollectionsReader().readCollection(file);
-		maze = SokoMaze.getInstance(mazeStates.get(0));
-		currMaze = 0;
-		gc = GraphCreator.getGraphCreator();
-		Graph graph = gc.createPushGraph(maze);
-		SokoDeadPositionFinder finder = SokoDeadPositionFinder.getInstance();
-		
 		to = new int[2];
 		from = new int[2];
 		playerLoc = new int[2];
 		canPush = new boolean[4];
 		
+        person = new Person();
+        wall = new Wall();
+        goal = new GoalSquare();
+        dead = new DeadPosition();
+        empty = new EmptySquare();
+        sokoSquares = new GraphicObj[SokoMaze.MAX_ROWS][SokoMaze.MAX_COLS];
+        
+        stonePushable = new Stone(Stone.STONE_PUSHABLE);
+        stoneOnEmpty = new Stone(Stone.STONE_ON_EMPTY_SQUARE);
+        stoneOnGoal = new Stone(Stone.STONE_ON_GOAL);
+		isDead = new boolean[SokoMaze.MAX_ROWS][SokoMaze.MAX_COLS];
+		isGoal = new boolean[SokoMaze.MAX_ROWS][SokoMaze.MAX_COLS];
+		reachable = new int[SokoMaze.MAX_ROWS][SokoMaze.MAX_COLS];
+		// Frame 
+        frame = new JFrame("ZSokoban");
+		
+		File file = new File("/Users/zhipinghe/Desktop/ThreeSokoMazes.txt");
+		mazeStates = new CollectionsReader().readCollection(file);
+		maze = SokoMaze.getInstance(mazeStates.get(0));
+		currMaze = 0;
+		gc = GraphCreator.getGraphCreator();
+		finder = SokoDeadPositionFinder.getInstance();
+		
+		canvas = new Canvas(maze, person, sokoSquares, 50);
+        
+        panel = new MyPanel(person, 50, 50, canvas);
+        
+        // Menu
+        sokoMenu = new SokoMenu();
+        
+		initNewMaze(maze);
+	}
+	private void initNewMaze(Maze newMaze) {
+		
+		maze = newMaze;
+		
+		gc = GraphCreator.getGraphCreator();
+		Graph graph = gc.createPushGraph(maze);
+		
 		// Dead positions
 		int[] deadPosns = finder.getDeadPositions(graph, maze);
-		isDead = new boolean[maze.numRows()][maze.numCols()];
 		for (int i=0; i<isDead.length; i++) {
 			Arrays.fill(isDead[i], false);
 		}
@@ -116,12 +150,14 @@ public class Controller implements KeyListener {
 			isDead[gc.getNodeRow(deadPosns[i])][gc.getNodeCol(deadPosns[i])] = true;
 		}
 		// Goal Squares
+		// TODO goalIds[] is a misleading name. Change to isGoalByIdx[]
 		boolean goalIds[] = maze.getIsGoalNode();
-		isGoal = new boolean[maze.numRows()][maze.numCols()];
+		
 		for (int i=0; i<isGoal.length; i++) {
 			Arrays.fill(isGoal[i], false);
 		}
-		for (int i=0; i<goalIds.length; i++) {
+		int nEmpty = gc.getNodes().length;  // A node is just an empty square in the maze. Includes goal, box and player squares.
+		for (int i=0; i<nEmpty; i++) {
 			isGoal[gc.getNodeRow(i)][gc.getNodeCol(i)] = goalIds[i];
 		}
 		// The finding dead positions algorithm clears all the boxes from the maze so
@@ -141,21 +177,8 @@ public class Controller implements KeyListener {
         int cSize = Math.min(drawW, drawH);
         cSize = Math.min(cSize, MyPanel.PREF_DRAWINGHEIGHT);
         
-        System.out.println("nRows: " + nRows + " nCols: " + nCols);
-        person = new Person();
-        System.out.println("person.getBounds(): " + person.getBounds());
-        
-        wall = new Wall();
-        goal = new GoalSquare();
-        dead = new DeadPosition();
-        empty = new EmptySquare();
-        stonePushable = new Stone(Stone.STONE_PUSHABLE);
-        stoneOnEmpty = new Stone(Stone.STONE_ON_EMPTY_SQUARE);
-        stoneOnGoal = new Stone(Stone.STONE_ON_GOAL);
-        
-        
-        // Frame 
-        frame = new JFrame("ZSokoban");
+        //System.out.println("nRows: " + nRows + " nCols: " + nCols);
+        //System.out.println("person.getBounds(): " + person.getBounds());
         
         // Create canvas
         createSokoSquares(cSize);
@@ -163,21 +186,14 @@ public class Controller implements KeyListener {
         //create box GraphicObj : done
         //add controller as keylistener : done
         //get player pushes and player moves : done
-        canvas = new Canvas(maze, person, sokoSquares, cSize);
+        canvas.setNewMaze(newMaze, cSize);
         
-        panel = new MyPanel(person, cSize, cSize, canvas);
         panel.setPreferredSize(new Dimension(cSize * nCols, cSize * nRows));
-        
-        // Menu
-        sokoMenu = new SokoMenu();
-        
+        System.out.printf("panel.setPreferredSize() cSize:%d nCols:%d nRows:%d\n",cSize, nCols, nRows);
         saveInitialState();
         
         // Player reachable squares
-        reachable = new int[maze.numRows()][maze.numCols()];
         updateReachable();
-        
-        //System.out.println("panel drawing width/height: " + cSize);
 		
 	}
 	private void saveInitialState() {
@@ -240,12 +256,11 @@ public class Controller implements KeyListener {
 		return canvas;
 	}
 	private void createSokoSquares(int sqrSize) {
-		sokoSquares = new GraphicObj[maze.numRows()][maze.numCols()];
-		
-		for (int r=0; r<sokoSquares.length; r++) {
-			for (int c=0; c<sokoSquares[r].length; c++) {
+		int nRows = maze.numRows(), nCols = maze.numCols();
+		for (int r=0; r<nRows; r++) {
+			for (int c=0; c<nCols; c++) {
 				if (maze.isWall(r, c)) {
-					sokoSquares[r][c] = wall; // need only one instance or multiple instances ?
+					sokoSquares[r][c] = wall; // need only one instance
 				}
 				else if (isDead[r][c]) {
 					sokoSquares[r][c] = dead;
@@ -330,7 +345,30 @@ public class Controller implements KeyListener {
 		}
 		
 	}
-
+	private void nextMaze() {
+		history.clear();
+		current = 0;
+		undoEnabled = false;
+		redoEnabled = false;
+		sokoMenu.enableRedo(false);
+		sokoMenu.enableUndo(false);
+		playerPushes = 0;
+		currMaze += 1;
+		maze.setNewMaze(mazeStates.get(currMaze));
+		
+		initNewMaze(maze);
+		
+		Dimension size = panel.getPreferredSize();
+		System.out.printf("panel preferred size:%s", size.toString());
+		//panel.setSize(size);
+		//frame.setB
+		//panel.invalidate();
+		//frame.validate();
+		//frame.setSize(size.width, size.height);
+		
+		frame.pack();
+		frame.setLocationRelativeTo(null);
+	}
 	private void updateReachable() {
 		maze.getPlayerLocation(playerLoc);
 		maze.getDistances(playerLoc[0], playerLoc[1], reachable);
@@ -355,8 +393,9 @@ public class Controller implements KeyListener {
 			frame.dispose();
 			break;
 		case JOptionPane.NO_OPTION:
-			//TODO Implement "Next" - gets the next puzzle.
-			JOptionPane.showMessageDialog(frame, "Not implemented yet.");
+			//TODO Check if its the last maze so 'Next' should be disabled.
+			//JOptionPane.showMessageDialog(frame, "Not implemented yet.");
+			nextMaze();
 			break;
 		case JOptionPane.CANCEL_OPTION:
 			reset();

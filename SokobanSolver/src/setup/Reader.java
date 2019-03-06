@@ -17,11 +17,12 @@ import gui.Direction;
 import solver.MyMazePosition;
 import utils.Utils;
 
+//TODO Remove this file. 
 /*
  * This class was a first attempt to read a single maze. Now the class <>CollectionsReader reads
  * files containing multiple mazes.
  */
-//TODO Extract MyMaze into a separate file and rename to SokoMaze
+//Extract MyMaze into a separate file and rename to SokoMaze : done
 /*public class Reader implements MazeReader {
 	
 	boolean debug = true;
@@ -51,7 +52,7 @@ import utils.Utils;
 	private Reader() {
 		player = new int[2];
 	}
-	//TODO This method has been replaced by Maze.parseChars(char[][] mazeChars) together 
+	//     This method has been replaced by Maze.parseChars(char[][] mazeChars) together 
 	//     with CollectionsReader.readCollection(File file) 
 	@Override
 	public Maze readMaze(File file) {
