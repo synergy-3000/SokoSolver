@@ -4,7 +4,14 @@ import java.util.Arrays;
 
 import gui.Controller;
 import gui.Direction;
-
+/**
+ * The GraphCreator class is only used by SokoDeadPositionFinder for finding the Dead Positions in the maze.
+ * It was a first attempt and in hindsight it is not needed. All the functionality can be put in SokoDeadPositionFinder
+ * TODO Modify SokoDeadPositionFinder to not need a Graph or GraphCreator and delete GraphCreator
+ * 
+ * @author zhipinghe
+ *
+ */
 public class GraphCreator implements Graph {
 	
 	final int ROW = 0;

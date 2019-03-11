@@ -16,6 +16,7 @@ import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import setup.CollectionsReader;
 import setup.Graph;
@@ -23,7 +24,8 @@ import setup.GraphCreator;
 import setup.Maze;
 import setup.MazeState;
 import setup.SokoMaze;
-import solver.SokoDeadPositionFinder;
+import solver.DeadPositionFinder;
+import solver.DeadPositionFinder2;
 
 //TODO Paint squares outside maze in dark blue?
 //TODO Add "Show Grid" checkbox menu item under "Preferences" menu
@@ -82,7 +84,7 @@ public class Controller implements KeyListener {
 	private List<MazeState> mazeStates;
 	private int currMaze;
 	
-	private SokoDeadPositionFinder finder;
+	private DeadPositionFinder finder;
 	
 	public static Controller getInstance() {
 		if (instance == null) {
@@ -91,8 +93,8 @@ public class Controller implements KeyListener {
 		return instance;
 	}
 	/*
-	 * TODO A lot of the code in the constructor needs to be placed
-	   in a method setNewMaze(MazeState ms) called when a new MazeState is set.
+	 * A lot of the code in the constructor needs to be placed
+	   in a method setNewMaze(MazeState ms) called when a new MazeState is set : done
 	*/
 	private Controller() {
 		
@@ -118,13 +120,14 @@ public class Controller implements KeyListener {
 		// Frame 
         frame = new JFrame("ZSokoban");
 		
-		File file = new File("/Users/zhipinghe/Desktop/ThreeSokoMazes.txt");
+		File file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
+        //File file = new File("/Users/zhipinghe/Desktop/ThreeSokoMazes.txt");
 		mazeStates = new CollectionsReader().readCollection(file);
 		maze = SokoMaze.getInstance(mazeStates.get(0));
 		currMaze = 0;
 		gc = GraphCreator.getGraphCreator();
-		finder = SokoDeadPositionFinder.getInstance();
-		
+		//finder = SokoDeadPositionFinder.getInstance();
+		finder = new DeadPositionFinder2();
 		canvas = new Canvas(maze, person, sokoSquares, 50);
         
         panel = new MyPanel(person, 50, 50, canvas);
@@ -176,13 +179,16 @@ public class Controller implements KeyListener {
         int drawW = MyPanel.MAX_WIDTH/nCols;
         int cSize = Math.min(drawW, drawH);
         cSize = Math.min(cSize, MyPanel.PREF_DRAWINGHEIGHT);
+        stonePushable.setDrawingArea(cSize, cSize);
+        stoneOnEmpty.setDrawingArea(cSize, cSize);
+        stoneOnGoal.setDrawingArea(cSize, cSize);
         
         //System.out.println("nRows: " + nRows + " nCols: " + nCols);
         //System.out.println("person.getBounds(): " + person.getBounds());
         
         // Create canvas
         createSokoSquares(cSize);
-        
+        panel.setDrawingWidthHeight(cSize, cSize);
         //create box GraphicObj : done
         //add controller as keylistener : done
         //get player pushes and player moves : done
@@ -256,6 +262,7 @@ public class Controller implements KeyListener {
 		return canvas;
 	}
 	private void createSokoSquares(int sqrSize) {
+		System.out.println("createSokoSquares() sqrSize= " + sqrSize);
 		int nRows = maze.numRows(), nCols = maze.numCols();
 		for (int r=0; r<nRows; r++) {
 			for (int c=0; c<nCols; c++) {
@@ -343,7 +350,6 @@ public class Controller implements KeyListener {
 				repaint(personLoc);
 			}*/
 		}
-		
 	}
 	private void nextMaze() {
 		history.clear();
@@ -365,9 +371,11 @@ public class Controller implements KeyListener {
 		//panel.invalidate();
 		//frame.validate();
 		//frame.setSize(size.width, size.height);
-		
+		System.out.printf("nextMaze() is gui thread = %b\n",SwingUtilities.isEventDispatchThread());
+		frame.setVisible(false);
 		frame.pack();
 		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
 	}
 	private void updateReachable() {
 		maze.getPlayerLocation(playerLoc);

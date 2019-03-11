@@ -10,6 +10,7 @@ import setup.Graph;
 import setup.GraphCreator;
 import setup.Maze;
 import setup.Node;
+import setup.SokoMaze;
 import utils.Utils;
 //TODO Change so that new arrays aren't allocated each call to getPathToGoal and getDeadPositions
 public class SokoDeadPositionFinder implements DeadPositionFinder {
@@ -38,6 +39,7 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 		toPos = new int[2];
 		fromPos = new int[2];
 	}
+	
 	@Override
 	public int[] getDeadPositions(Graph graph, Maze maze) {
 		GraphCreator gc = GraphCreator.getGraphCreator();
@@ -81,7 +83,6 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 		return retVal;
 	}
 
-	@Override
 	/*
 	 * The player must be initially placed next to the box for this algorithm to
 	 * work (non-Javadoc)
@@ -194,6 +195,7 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 			return null;
 		}
 	}
+	
 	private int getHashCode(Graph graph, int nodeId, int playerRow, int playerCol) {
 		
 		// Direction from player to node
@@ -228,6 +230,7 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 		nodeIds = Arrays.copyOf(nodeIds, nodeIds.length + MAX_PUSHES);
 		pushes = Arrays.copyOf(pushes, pushes.length + MAX_PUSHES);
 	}
+	
 	class DistancesComparator implements Comparator<Integer> {
 
 		int[] pushDistances;
@@ -247,5 +250,4 @@ public class SokoDeadPositionFinder implements DeadPositionFinder {
 		}
 
 	}
-
 }

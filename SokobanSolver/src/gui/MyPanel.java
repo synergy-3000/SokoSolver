@@ -101,6 +101,7 @@ public class MyPanel extends JPanel {
     	personLoc.setSize(dWidth, dHeight);
     	dv.setX(drawingWidth);
         person.setDrawingArea(drawingWidth, drawingHeight);
+        System.out.println("Setting drawingWidth to " + drawingWidth);
     }
     private void printRGB(String s, Color color) {
     	int red = color.getRed();
@@ -200,7 +201,7 @@ public class MyPanel extends JPanel {
         int lastX = getWidth() - insets.right;
         int lastY = getHeight() - insets.bottom;
         
-        
+        System.out.println("gridSpace: " + gridSpace);
         //Draw vertical lines.
         int x = firstX;
         while (x < lastX) {

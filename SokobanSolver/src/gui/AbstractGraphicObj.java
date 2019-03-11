@@ -64,6 +64,8 @@ public abstract class AbstractGraphicObj implements GraphicObj {
 		
 		dx += dxCentre;
 		dy += dyCentre;
+		
+		//System.out.println("setDrawingArea() scalexy = " + scalexy);
 	}
 	
 
