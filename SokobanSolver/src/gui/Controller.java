@@ -25,8 +25,10 @@ import setup.Maze;
 import setup.MazeState;
 import setup.SokoMaze;
 import solver.DeadPositionFinder;
-import solver.DeadPositionFinder2;
+import solver.DeadPositionFinder3;
 
+//Bug: Starting again shows available pushes for where the player was last located and NOT 
+// for the starting position of the player : done
 //TODO Paint squares outside maze in dark blue?
 //TODO Add "Show Grid" checkbox menu item under "Preferences" menu
 //TODO update ReadMe file in my repository on GitHUb
@@ -34,8 +36,9 @@ import solver.DeadPositionFinder2;
 //TODO Investigate lambda expressions
 //TODO Add "Show Available Pushes" check box item under "Preferences" Menu
 //TODO Make a distribution, jar file ?, of java project 
-//TODO show total number of pushes 
-
+//TODO Show total number of pushes 
+//TODO Change options after solving a maze to Previous, Start Again, Quit
+//TODO Rename Git repository from SokoSolver to ZSokoban or Sokoban
 //   ... create a big mazeChars[][] and record the start and finish row in mazeChars[][] for each maze.
 //Also record the max for states and spaces.
 //detect when all stones are on goal squares and display a "Well Done!!" message : completed
@@ -127,7 +130,9 @@ public class Controller implements KeyListener {
 		currMaze = 0;
 		gc = GraphCreator.getGraphCreator();
 		//finder = SokoDeadPositionFinder.getInstance();
-		finder = new DeadPositionFinder2();
+		//finder = new DeadPositionFinder2();
+		finder = new DeadPositionFinder3();
+		
 		canvas = new Canvas(maze, person, sokoSquares, 50);
         
         panel = new MyPanel(person, 50, 50, canvas);
@@ -141,6 +146,9 @@ public class Controller implements KeyListener {
 		
 		maze = newMaze;
 		
+		// Player reachable squares
+        updateReachable();
+        
 		gc = GraphCreator.getGraphCreator();
 		Graph graph = gc.createPushGraph(maze);
 		
@@ -198,8 +206,7 @@ public class Controller implements KeyListener {
         System.out.printf("panel.setPreferredSize() cSize:%d nCols:%d nRows:%d\n",cSize, nCols, nRows);
         saveInitialState();
         
-        // Player reachable squares
-        updateReachable();
+        
 		
 	}
 	private void saveInitialState() {
@@ -220,6 +227,7 @@ public class Controller implements KeyListener {
 	private void restoreInitialState() {
 		maze.setPlayerLocation(initialPlayerLoc);
 		maze.setBoxLocations(initialStoneLocs);
+		updateReachable();
 		history.clear();
 		current = 0;
 		undoEnabled = false;
@@ -351,6 +359,9 @@ public class Controller implements KeyListener {
 			}*/
 		}
 	}
+	private boolean hasNextMaze() {
+		return (currMaze < (mazeStates.size()-1));
+	}
 	private void nextMaze() {
 		history.clear();
 		current = 0;
@@ -359,7 +370,7 @@ public class Controller implements KeyListener {
 		sokoMenu.enableRedo(false);
 		sokoMenu.enableUndo(false);
 		playerPushes = 0;
-		currMaze += 1;
+		//currMaze = (current + 1) % mazeStates.size();
 		maze.setNewMaze(mazeStates.get(currMaze));
 		
 		initNewMaze(maze);

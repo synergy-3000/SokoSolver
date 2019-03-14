@@ -37,7 +37,7 @@ public class SokoMaze implements Maze {
 	private int numSpaces;
 	private int[] playerRowCol = new int[2];  // Row and Column of player position
 	
-	boolean debug = true;
+	boolean debug = false;
 	String errMsg;
 	
 	boolean[] isGoalNode;	// true if node id = goal node

@@ -1,18 +1,24 @@
 package testSetup;
+import java.io.File;
+import java.util.List;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import gui.Controller;
+import setup.CollectionsReader;
 import setup.Maze;
+import setup.MazeState;
 import solver.DeadPositionFinder2;
+import solver.DeadPositionFinder3;
 
 class TestDeadPositionFinder2 {
 	
-	DeadPositionFinder2 dpf;
+	DeadPositionFinder3 dpf;
 	
 	public TestDeadPositionFinder2() {
-		dpf = new DeadPositionFinder2();
+		dpf = new DeadPositionFinder3();
 	}
 	@BeforeEach
 	void setUp() throws Exception {
@@ -25,15 +31,15 @@ class TestDeadPositionFinder2 {
 	@Test
 	void testGetDeadPositions() {
 		Maze maze = Controller.getInstance().getMaze();
-		int[] dead = dpf.getDeadPositions(null, maze);
+		//int[] dead = dpf.getDeadPositions(null, maze);
 		
-		int idx = 0;
+		/*int idx = 0;
 		int nRows = maze.numRows();
 		int nCols = maze.numCols();
 		int[] rowIdx = new int[nRows*nCols];
 		int[] colIdx = new int[nRows*nCols];
 		
-		/*for (int r=0; r<nRows; r++) {
+		for (int r=0; r<nRows; r++) {
 			for (int c=0; c<nCols; c++) {
 				if (!maze.isWall(r, c) && !maze.isOutsideMaze(r, c)) {
 					rowIdx[idx] = r;
@@ -45,15 +51,21 @@ class TestDeadPositionFinder2 {
 		for (int deadIdx : dead) {
 			
 		}*/
+		File file = new File("/Users/zhipinghe/Desktop/SokobanOriginalLevels.txt");
+		List<MazeState> mstates = new CollectionsReader().readCollection(file);
+		for (MazeState ms : mstates) {
+			maze.setNewMaze(ms);
+			dpf.getDeadPositions(null, maze);
+		}
 	}
 	@Test
 	void testGetPathToGoal() {
-		Maze maze = Controller.getInstance().getMaze();
+		/*Maze maze = Controller.getInstance().getMaze();
 		int[][] boxes = maze.getBoxLocations();
 		int[] player = new int[2];
 		maze.getPlayerLocation(player);
 		boolean isGoal[] = maze.getIsGoalNode();
 		int[] path = dpf.getPathToGoal(maze, boxes[0][0], boxes[0][1], isGoal, player[0], player[1]);
-		
+		*/
 	}
 }

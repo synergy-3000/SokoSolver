@@ -8,7 +8,7 @@ import setup.Graph;
 import setup.Maze;
 import setup.SokoMaze;
 
-//TODO Make a DeadPositionFinder3 that uses a HashSet and a normalized player position.
+//Make a DeadPositionFinder3 that uses a HashSet and a normalized player position : done
 /**
  * A second try at writing a DeadPositionFinder. This implementation doesn't need a 
  * Graph object. It creates its own graph.
@@ -17,6 +17,8 @@ import setup.SokoMaze;
  *
  */
 public class DeadPositionFinder2 implements DeadPositionFinder {
+	
+	boolean debug = false;
 	
 	final int LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
 	int[] opp = { RIGHT, DOWN, LEFT, UP };   // (dir+2) % 4;
@@ -79,6 +81,7 @@ public class DeadPositionFinder2 implements DeadPositionFinder {
 			for (int c=0; c<nCols; c++) {
 				if (index[r][c] > -1) {
 					maze.setBoxAt(r, c);
+					// Set the player at possibly 4 empty spaces around the box
 					for (int i=0; i<4; i++) {
 						pRow = r+dy[i];
 						pCol = c+dx[i];
@@ -97,6 +100,7 @@ public class DeadPositionFinder2 implements DeadPositionFinder {
 			}
 		}
 		// Debug
+		if (debug) {
 		for (int r=0; r<nRows; r++) {
 			for (int c=0; c<nCols; c++) {
 				if (index[r][c] > -1) {
@@ -121,6 +125,7 @@ public class DeadPositionFinder2 implements DeadPositionFinder {
 					}
 				}
 			}
+		}
 		}
 		// End Debug
 		// Put boxes back
@@ -302,8 +307,10 @@ public class DeadPositionFinder2 implements DeadPositionFinder {
 				path[i] = stack.pop();
 				i++;
 			}
+			if (debug) {
 			System.out.printf("[%d,%d] ", row[hash/4], col[hash/4]);
 			System.out.print("\n");
+			}
 		}
 		return path;
 	}
