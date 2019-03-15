@@ -58,7 +58,7 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 		pRC = new int[2];
 	}
 	/**
-	 * Returns the index of the squares that are dead posiitons. i.e A box placed at that square cannot be
+	 * Returns the index of the squares that are dead positions. i.e A box placed at that square cannot be
 	 * pushed to a goal square.
 	 */
 	@Override

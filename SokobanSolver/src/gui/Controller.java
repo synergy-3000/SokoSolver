@@ -2,7 +2,10 @@ package gui;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Stroke;
@@ -14,9 +17,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 
 import setup.CollectionsReader;
 import setup.Graph;
@@ -29,6 +33,10 @@ import solver.DeadPositionFinder3;
 
 //Bug: Starting again shows available pushes for where the player was last located and NOT 
 // for the starting position of the player : done
+//TODO Screen flashes when changing mazes or 'starting again'
+//TODO Create an icon for program 32x32
+//TODO Improve player graphic for UP & DOWN pushes
+//TODO Add name of maze collection and Level in stats label 
 //TODO Paint squares outside maze in dark blue?
 //TODO Add "Show Grid" checkbox menu item under "Preferences" menu
 //TODO update ReadMe file in my repository on GitHUb
@@ -49,6 +57,7 @@ public class Controller implements KeyListener {
 	Maze maze;
 	Canvas canvas;
 	Person person;
+	JLabel lblStats;
 	
 	GraphicObj wall;
 	GraphicObj goal;
@@ -67,7 +76,7 @@ public class Controller implements KeyListener {
 	int[] to, from;
 	int[] playerLoc;
 	
-	int playerPushes = 0;
+	int nPushes = 0;
 	
 	GraphCreator gc;
 	
@@ -88,6 +97,7 @@ public class Controller implements KeyListener {
 	private int currMaze;
 	
 	private DeadPositionFinder finder;
+	private int nMoves = 0;
 	
 	public static Controller getInstance() {
 		if (instance == null) {
@@ -123,7 +133,8 @@ public class Controller implements KeyListener {
 		// Frame 
         frame = new JFrame("ZSokoban");
 		
-		File file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
+		//File file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
+		File file = new File("/Users/zhipinghe/Desktop/SokobanMaze3.txt");
         //File file = new File("/Users/zhipinghe/Desktop/ThreeSokoMazes.txt");
 		mazeStates = new CollectionsReader().readCollection(file);
 		maze = SokoMaze.getInstance(mazeStates.get(0));
@@ -140,7 +151,32 @@ public class Controller implements KeyListener {
         // Menu
         sokoMenu = new SokoMenu();
         
+        Container container = frame.getContentPane();
+        container.setLayout(new BoxLayout(container,
+                BoxLayout.PAGE_AXIS));
+		container.add(panel);
+		
+		lblStats = new JLabel();
+		//System.out.println("JLabel font size: " + lblStats.getFont().getSize());
+		lblStats.setFont(lblStats.getFont().deriveFont(Font.BOLD));
+		updateLabel();
+		container.add(lblStats);
+		
+		//Align the left edges of the components.
+		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		lblStats.setAlignmentX(Component.LEFT_ALIGNMENT); //redundant
 		initNewMaze(maze);
+        frame.setJMenuBar(sokoMenu.createMenuBar());
+        frame.addKeyListener(this);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        //frame.setVisible(true);
+        
+		
+	}
+	private void updateLabel() {
+		lblStats.setText("Pushes " + nPushes + " Moves " + nMoves);
 	}
 	private void initNewMaze(Maze newMaze) {
 		
@@ -173,7 +209,7 @@ public class Controller implements KeyListener {
 		}
 		// The finding dead positions algorithm clears all the boxes from the maze so
 		// need to put them back! 
-		//TODO restore boxes in the finding dead positions algorithm
+		//restore boxes in the finding dead positions algorithm : done
 		int[][] boxLocs = maze.getBoxLocations();
 		for (int i=0; i<boxLocs.length; i++) {
 			maze.setBoxAt(boxLocs[i][0], boxLocs[i][1]);
@@ -204,38 +240,8 @@ public class Controller implements KeyListener {
         
         panel.setPreferredSize(new Dimension(cSize * nCols, cSize * nRows));
         System.out.printf("panel.setPreferredSize() cSize:%d nCols:%d nRows:%d\n",cSize, nCols, nRows);
-        saveInitialState();
-        
-        
-		
 	}
-	private void saveInitialState() {
-		int[][] stonePosns;
-		stonePosns = maze.getBoxLocations();
-		// Make a copy because a reference to the array is returned by maze.getBoxLocations()
-		// and this will change as boxes are moved!
-		initialStoneLocs = new int[stonePosns.length][2];
-		for (int i=0; i<stonePosns.length; i++) {
-			for (int j=0; j<2; j++) {
-				initialStoneLocs[i][j] = stonePosns[i][j];
-			}
-		}
-		// player
-		initialPlayerLoc = new int[2];
-		maze.getPlayerLocation(initialPlayerLoc);
-	}
-	private void restoreInitialState() {
-		maze.setPlayerLocation(initialPlayerLoc);
-		maze.setBoxLocations(initialStoneLocs);
-		updateReachable();
-		history.clear();
-		current = 0;
-		undoEnabled = false;
-		redoEnabled = false;
-		sokoMenu.enableRedo(false);
-		sokoMenu.enableUndo(false);
-		playerPushes = 0;
-	}
+	
 	public PlayerMove[] getPlayerMoves() {
 		maze.getPlayerLocation(playerLoc);
 		//System.out.println("getPlayerMoves(): ");
@@ -362,31 +368,38 @@ public class Controller implements KeyListener {
 	private boolean hasNextMaze() {
 		return (currMaze < (mazeStates.size()-1));
 	}
-	private void nextMaze() {
+	private void setNewMaze(MazeState newMs) {
 		history.clear();
 		current = 0;
 		undoEnabled = false;
 		redoEnabled = false;
 		sokoMenu.enableRedo(false);
 		sokoMenu.enableUndo(false);
-		playerPushes = 0;
-		//currMaze = (current + 1) % mazeStates.size();
-		maze.setNewMaze(mazeStates.get(currMaze));
+		incDecPushes(-nPushes);
+		incDecMoves(-nMoves);
+		maze.setNewMaze(newMs);
 		
 		initNewMaze(maze);
 		
-		Dimension size = panel.getPreferredSize();
-		System.out.printf("panel preferred size:%s", size.toString());
+		//Dimension size = panel.getPreferredSize();
+		//System.out.printf("panel preferred size:%s", size.toString());
 		//panel.setSize(size);
 		//frame.setB
 		//panel.invalidate();
 		//frame.validate();
 		//frame.setSize(size.width, size.height);
-		System.out.printf("nextMaze() is gui thread = %b\n",SwingUtilities.isEventDispatchThread());
+		//System.out.printf("nextMaze() is gui thread = %b\n",SwingUtilities.isEventDispatchThread());
+		
+		
+		
 		frame.setVisible(false);
 		frame.pack();
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
+	}
+	private void nextMaze() {
+		currMaze = (current + 1) % mazeStates.size();
+		setNewMaze(mazeStates.get(currMaze));
 	}
 	private void updateReachable() {
 		maze.getPlayerLocation(playerLoc);
@@ -398,7 +411,7 @@ public class Controller implements KeyListener {
 		//Custom button text
 		Object[] options = {"Quit",
 		                    "Next",
-		                    "Start Again"};
+		                    "Start Again"};  // These are displayed on the dialog in reverse order.
 		int n = JOptionPane.showOptionDialog(frame,
 				"Well Done!!",
 			    "Solved",
@@ -412,7 +425,7 @@ public class Controller implements KeyListener {
 			frame.dispose();
 			break;
 		case JOptionPane.NO_OPTION:
-			//TODO Check if its the last maze so 'Next' should be disabled.
+			//Check if its the last maze so 'Next' should be disabled : Now 'Next' cycles to first maze after last maze.
 			//JOptionPane.showMessageDialog(frame, "Not implemented yet.");
 			nextMaze();
 			break;
@@ -442,6 +455,14 @@ public class Controller implements KeyListener {
 
 		System.out.println("addToHistory(): current = " + current + " history.size() = " + history.size());
 		
+	}
+	public void incDecPushes(int incdec) {
+		nPushes += incdec;
+		updateLabel();
+	}
+	public void incDecMoves(int incdec) {
+		nMoves += incdec;
+		updateLabel();
 	}
 	public void undo() {
 		if ( (current - 1) >= 0 ) {
@@ -493,9 +514,7 @@ public class Controller implements KeyListener {
 	/* Start again from the beginning */
 	//implement reset() : completed
 	public void reset() {
-		restoreInitialState();
-		// Repaint everything
-		panel.repaint(panel.getBounds());
+		setNewMaze(mazeStates.get(currMaze));
 	}
 
 	public SokoMenu getMenu() {

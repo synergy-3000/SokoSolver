@@ -10,6 +10,8 @@ import org.junit.jupiter.api.function.Executable;
 import gui.Direction;
 import utils.Utils;
 
+//When setting a new MazeState want the Maze to have its own copy of box locations etc. At the moment
+// when the Maze is altered during play the MazeState is also altered : done
 public class SokoMaze implements Maze {
 	public static final int MAX_ROWS = 20;
 	public static final int MAX_COLS = 20;
@@ -307,8 +309,7 @@ public class SokoMaze implements Maze {
 	}
 	@Override
 	public void setNewMaze(MazeState ms) {
-		
-		 stoneLocs = ms.stoneLocs;   	  // r,c of stones
+		 stoneLocs = Utils.copyArray(ms.stoneLocs);   // r,c of stones
 		 numStones = ms.numStones;
 		 numRows = ms.numRows;
 		 numCols = ms.numCols;
@@ -318,8 +319,8 @@ public class SokoMaze implements Maze {
 		 Utils.copyArray(mazeChars, ms.mazeChars);
 		 numStates = ms.numStates;
 		 numSpaces = ms.numSpaces;
-		 playerRowCol = ms.player;  // Row and Column of player position
-		 
+		 playerRowCol = Arrays.copyOf(ms.player, 2);	// Row and Column of player position
+
 		 initIsGoalNode();
 	}
 }

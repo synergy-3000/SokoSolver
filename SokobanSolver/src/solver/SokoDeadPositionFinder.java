@@ -12,7 +12,8 @@ import setup.Maze;
 import setup.Node;
 import setup.SokoMaze;
 import utils.Utils;
-//TODO Change so that new arrays aren't allocated each call to getPathToGoal and getDeadPositions
+//Change so that new arrays aren't allocated each call to getPathToGoal and getDeadPositions : implemented another DeadPositionFinder
+// called DeadPositionFinder2 and also DeadPositionFinder3
 public class SokoDeadPositionFinder implements DeadPositionFinder {
 
 	static SokoDeadPositionFinder instance;

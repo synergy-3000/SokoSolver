@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 //Read in all puzzles from ClassicLevels file show # Rows # Cols # Boxes # Spaces # States : done
-//TODO When setting a new maze state will also need to re-create the graph
+//When setting a new maze state will also need to re-create the graph : done, new implementations of DeadPositionFinder
 //TODO calc max of numStates
 /*
  * Reads a file containing multiple mazes, commonly called a collection.

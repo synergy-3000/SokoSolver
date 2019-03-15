@@ -28,6 +28,8 @@ public enum BoxPush implements Cmd {
 		box = new int[2];
 	}
 	public void execute(JPanel drawArea, Maze maze, Canvas canvas) {
+		Controller.getInstance().incDecPushes(1);
+		
 		int sSize = canvas.getMazeSquareSize();
 		maze.getPlayerLocation(prc);
 		dirn.getToPosition(prc, to);
@@ -51,6 +53,8 @@ public enum BoxPush implements Cmd {
 	}
 	@Override
 	public void undo(JPanel drawArea, Maze maze, Canvas canvas) {
+		
+		Controller.getInstance().incDecPushes(-1);
 		
 		int sSize = canvas.getMazeSquareSize();
 		maze.getPlayerLocation(prc);

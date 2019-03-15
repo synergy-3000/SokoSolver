@@ -3,12 +3,12 @@ package testgui;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import gui.Controller;
 import gui.GraphicObj;
 import gui.MyPanel;
-import gui.SokoMenu;
 
 public class PersonTest {
 	
@@ -57,24 +57,11 @@ public class PersonTest {
         
         //person.scale(2f);
         
-        
-        panel = Controller.getInstance().getPanel();
-        
         JFrame f = Controller.getInstance().getFrame();
-        
-        SokoMenu sokoMenu = Controller.getInstance().getMenu();
-        f.setJMenuBar(sokoMenu.createMenuBar());
-        
-        f.addKeyListener(Controller.getInstance());
-        
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
-        f.add(panel);
-        f.pack();
-        f.setLocationRelativeTo(null);
         f.setVisible(true);
         
         //f.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        
+        JPanel panel = Controller.getInstance().getPanel();
         System.out.println("panel.getSize(): " + panel.getSize());
         System.out.println("panel.getMaximumSize(): " + panel.getMaximumSize());
         System.out.println("6/4 : " + 6/4);

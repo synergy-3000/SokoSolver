@@ -34,9 +34,12 @@ public enum PlayerMove implements Cmd {
 				}
 			}	
 		}
+		Controller.getInstance().incDecMoves(-2);  //undoMove.execute will add 1 to number of moves
 		undoMove.execute(drawArea, maze, canvas);
 	}
 	public void execute(JPanel drawArea, Maze maze, Canvas canvas) {
+		Controller.getInstance().incDecMoves(1);
+		
 		int sSize = canvas.getMazeSquareSize();
 		maze.getPlayerLocation(prc);
 		prc[0] *= sSize;
