@@ -11,7 +11,7 @@ import setup.Maze;
 import setup.SokoMaze;
 /**
  * Implementation of DeadPositionFinder that uses a HashSet and a normalised player position
- * equal to the topmost left coordinate of the player reachable area. Could spped this up by
+ * equal to the topmost left coordinate of the player reachable area. Could speed this up by
  * having an Node[][3], 1st index = boxId , 2nd index = player location around box. It was implemented
  * this way because the future solver might be implemented similarly but with multiple box locations
  * in each Node.
@@ -32,13 +32,19 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 	boolean[] canReach;		// ditto
 	int[] coord2;
 	int[] boxRC, pRC;
+	Node[][] nodes;
+	int[] nNodes;	// # of nodes in nodes[i];
 	
 	int[] dx = {-1, 0,1,0}; 
 	int[] dy = { 0,-1,0,1}; 
 	final int LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
 	int[] opp = { RIGHT, DOWN, LEFT, UP };  
+	int[][] dirn = { {   0,   UP,    0},
+				     {LEFT,   0,   RIGHT},
+                     {   0,  DOWN,   0} };
 	boolean[] isGoal;
 	int[] dead;
+	private int[] topLeft = new int[2];
 	
 	public DeadPositionFinder3() {
 		visited = new HashSet<Node>();
@@ -56,6 +62,9 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 		dead = new int[SokoMaze.MAX_SPACES];
 		boxRC = new int[2];
 		pRC = new int[2];
+		nodes = new Node[SokoMaze.MAX_SPACES][4];
+		nNodes = new int[SokoMaze.MAX_SPACES];
+		Arrays.fill(nNodes, 0);
 	}
 	/**
 	 * Returns the index of the squares that are dead positions. i.e A box placed at that square cannot be
@@ -138,7 +147,7 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 		int[] path = null;
 		
 		LinkedList<Node> queue = new LinkedList<Node>();
-		Node startNode = makeNode(maze, boxRC, pRC);
+		Node startNode = getNode(maze, boxRC, pRC);
 		queue.add(startNode);
 		boolean found = false;
 		while (!queue.isEmpty() && !found) {
@@ -174,6 +183,13 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 		}
 		return path;
 	}
+	private Node[] getPushes(Maze maze, Node from) {
+		
+		if (from.pushes == null) {
+			from.pushes = makePushes(maze, from);
+		}
+		return from.pushes;
+	}
 	/**
 	 * Returns the neighbours of the given node. These are nodes that can be pushed to.
 	 * distances is the player reachable area.
@@ -183,7 +199,7 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 	 * @param distances
 	 * @return
 	 */
-	private Node[] getPushes(Maze maze, Node from) {
+	private Node[] makePushes(Maze maze, Node from) {
 		int boxR = row[from.boxId];
 		int boxC = col[from.boxId];
 		ArrayList<Node> pushes = new ArrayList<Node>();
@@ -200,30 +216,48 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 				if (from.canReach[opp[i]]) {
 					coord2[0] = boxR;
 					coord2[1] = boxC;
-					pushes.add(makeNode(maze, to, coord2));
+					pushes.add(getNode(maze, to, coord2));
 				}
 				// Push RIGHT or push DOWN
 				if (from.canReach[i]) {
 					coord2[0] = boxR;
 					coord2[1] = boxC;
-					pushes.add(makeNode(maze, oppTo, coord2));
+					pushes.add(getNode(maze, oppTo, coord2));
 				}
 			}
 		}
 		return pushes.toArray(new Node[0]);
 	}
+	private Node getNode(Maze maze, int[] box, int[] player) {
+		int idx = index[box[0]][box[1]];
+		Node node = null;
+		//System.out.printf("getNode(): box[%d,%d] player[%d,%d]",box[0],box[1],player[0],player[1]);
+		for (int i=0; i<nNodes[idx] && (node == null); i++) {
+			if (nodes[idx][i].equals(idx, player)) {
+				node = nodes[idx][i];
+				//System.out.printf("Found node for: box[%d,%d] player[%d,%d]\n",box[0],box[1],player[0],player[1]);
+			}
+		}
+		if (node == null) {
+			//System.out.printf("Not found, making node for: box[%d,%d] player[%d,%d]\n",box[0],box[1],player[0],player[1]);
+			node = makeNode(maze, box, player);
+			nodes[idx][nNodes[idx]] = node;
+			nNodes[idx] += 1;
+		}
+		return node;
+	}
 	private Node makeNode(Maze maze, int[] box, int[] player) {
 		maze.setBoxAt(box[0], box[1]);
-		maze.getDistances(player[0], player[1], distances);
+		maze.getDistances(player[0], player[1], distances, topLeft);
 		maze.setEmptyAt(box[0], box[1]);
-		getNorm(distances, coord);
+		//getNorm(distances, coord); Not needed now the getDistances(..) method also calculates topLeft location
 		for (int j=0; j<4; j++) {
 			if (distances[box[0]+dy[j]][box[1]+dx[j]] > -1) {
 				canReach[j] = true;
 			}
 			else canReach[j] = false;
 		}
-		return new Node(canReach, coord, index[box[0]][box[1]]);
+		return new Node(canReach, topLeft, index[box[0]][box[1]]);
 	}
 	/**
 	 * Get topmost, left coordinate of the player's reachable area.
@@ -246,6 +280,7 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 		int boxId;
 		int[] norm;
 		boolean[] canReach; // The player reachable squares around the box. LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
+		Node[] pushes = null;
 		
 		public Node(boolean canReach[], int norm[], int boxId) {
 			this.norm = new int[2];
@@ -264,6 +299,16 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 		}
 		public boolean equals(Node node) {
 			return (boxId == node.boxId) && (norm[0] == node.norm[0]) && (norm[1] == node.norm[1]);
+		}
+		/**
+		 * 
+		 * @param boxIdx
+		 * @param player player position around the box
+		 * @return
+		 */
+		public boolean equals(int boxIdx, int[] player) {
+			int dir = dirn[1+player[0] - row[boxIdx]][1+player[1] - col[boxIdx]];
+			return (boxId == boxIdx) && canReach[dir];
 		}
 		@Override
 		public boolean equals(Object obj) {

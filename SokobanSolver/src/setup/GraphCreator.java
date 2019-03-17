@@ -33,6 +33,7 @@ public class GraphCreator implements Graph {
 	Maze maze;
 	
 	int[] fr, to, playerPos;
+	private int[] topLeft = new int[2];
 	
 	private static GraphCreator graphCreator;
 	
@@ -168,7 +169,7 @@ public class GraphCreator implements Graph {
 			maze.setBoxAt(row, col);
 			
 			// Get player reachable array. This is dependent on the box location and player location
-			maze.getDistances(nodeRows[player], nodeColumns[player], reachable);
+			maze.getDistances(nodeRows[player], nodeColumns[player], reachable, topLeft );
 			
 			nFrom[id] = 0;
 			for (Direction pushDirn : Direction.values()) {
@@ -339,7 +340,7 @@ public class GraphCreator implements Graph {
 				regionNum[i] = nRegions;
 				nRegions += 1;
 			}
-			maze.getDistances(playerPos[i][ROW], playerPos[i][COL], reachable);
+			maze.getDistances(playerPos[i][ROW], playerPos[i][COL], reachable, topLeft);
 			for (int j = (i+1); j<nPlayerPos; j++) {
 				row = playerPos[j][ROW];
 				col = playerPos[j][COL];

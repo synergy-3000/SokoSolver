@@ -57,6 +57,17 @@ class TestDeadPositionFinder2 {
 			maze.setNewMaze(ms);
 			dpf.getDeadPositions(null, maze);
 		}
+		int a = 1, b = 2, c = 3, d=4,e=5,f;
+		String s2 = "";;
+		String s = b < a ? " b < a" : b == a ? " b == a" : (s2 = " b > a");
+		System.out.println("b=" + b + " a=" + a + " s=" + s + " s2=" +s2);
+		a = b;
+		s = b < a ? " b < a" : b == a ? " b == a" : " b > a";
+		System.out.println("b=" + b + " a=" + a + s);
+		a = b + 1;
+		s = b < a ? " b < a" : b == a ? " b == a" : " b > a";
+		System.out.println("b=" + b + " a=" + a + s);
+		
 	}
 	@Test
 	void testGetPathToGoal() {

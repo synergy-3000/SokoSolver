@@ -98,6 +98,7 @@ public class Controller implements KeyListener {
 	
 	private DeadPositionFinder finder;
 	private int nMoves = 0;
+	private int[] topLeft;
 	
 	public static Controller getInstance() {
 		if (instance == null) {
@@ -116,6 +117,7 @@ public class Controller implements KeyListener {
 		from = new int[2];
 		playerLoc = new int[2];
 		canPush = new boolean[4];
+		topLeft = new int[2];
 		
         person = new Person();
         wall = new Wall();
@@ -133,8 +135,8 @@ public class Controller implements KeyListener {
 		// Frame 
         frame = new JFrame("ZSokoban");
 		
-		//File file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
-		File file = new File("/Users/zhipinghe/Desktop/SokobanMaze3.txt");
+		File file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
+		//File file = new File("/Users/zhipinghe/Desktop/SokobanMaze3.txt");
         //File file = new File("/Users/zhipinghe/Desktop/ThreeSokoMazes.txt");
 		mazeStates = new CollectionsReader().readCollection(file);
 		maze = SokoMaze.getInstance(mazeStates.get(0));
@@ -403,7 +405,7 @@ public class Controller implements KeyListener {
 	}
 	private void updateReachable() {
 		maze.getPlayerLocation(playerLoc);
-		maze.getDistances(playerLoc[0], playerLoc[1], reachable);
+		maze.getDistances(playerLoc[0], playerLoc[1], reachable, topLeft);
 	}
 
 	private void solved() {

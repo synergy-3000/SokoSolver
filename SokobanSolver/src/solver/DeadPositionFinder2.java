@@ -43,6 +43,8 @@ public class DeadPositionFinder2 implements DeadPositionFinder {
 	ArrayList<Integer> equivHash = new ArrayList<Integer>();
 	int[][] distances;
 	boolean graphInit = false;
+
+	private int[] topLeft = new int[2];
 	
 	
 	private void initGraph(Maze maze) {
@@ -86,7 +88,7 @@ public class DeadPositionFinder2 implements DeadPositionFinder {
 						pRow = r+dy[i];
 						pCol = c+dx[i];
 						if (index[pRow][pCol] > -1) {
-							maze.getDistances(pRow, pCol, distances);
+							maze.getDistances(pRow, pCol, distances, topLeft );
 							hash = getHashCode(index[r][c], r, c, r+dy[i], c+dx[i]);
 							equal[hash] = getEquivalent(pRow, pCol, r, c, distances);
 							children[hash] = getPushes(maze, r, c, distances);
@@ -236,7 +238,7 @@ public class DeadPositionFinder2 implements DeadPositionFinder {
 					found = false;
 					// Set a box at the square
 					maze.setBoxAt(r, c);
-					maze.getDistances(pRC[0], pRC[1], distances);
+					maze.getDistances(pRC[0], pRC[1], distances, topLeft);
 					maze.setEmptyAt(r, c);
 					
 					// Find a square around the box that the player can reach.

@@ -14,6 +14,7 @@ import solver.MyMazePosition;
 class TestReader {
 	MazeReader aReader;
 	File file;
+	private int[] topLeft = new int[2];
 	
 	@BeforeEach
 	void setUp() throws Exception {
@@ -62,8 +63,8 @@ class TestReader {
 		assert(maze != null);
 		int[][] reachable = new int[maze.numRows()][maze.numCols()];
 		
-		maze.getDistances(8, 8, reachable);
-		maze.getDistances(3, 9, reachable);
+		maze.getDistances(8, 8, reachable, topLeft );
+		maze.getDistances(3, 9, reachable, topLeft);
 		
 		// File does not exist
 		file = new File("/Users/zhipinghe/Desktop/SokobanMaz1.rtf");

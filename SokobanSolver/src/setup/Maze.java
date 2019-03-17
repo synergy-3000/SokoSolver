@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import gui.Direction;
 
 public interface Maze {
-	public void getDistances(int startRow, int startCol, int[][] distances); 
+	public void getDistances(int startRow, int startCol, int[][] distances, int[] topLeft); 
 	public boolean isOutsideMaze(int row, int col);
 	public boolean isWall(int row, int col);
 	public boolean isBox(int row, int col);
@@ -62,6 +62,7 @@ public interface Maze {
 		 }
 	    /* 
 	     * Fill interior with '0' to denote a square inside the maze. Algorithm expects this.
+	     * Use Breadth First Search to iterate over all squares inside the maze.
 	     */
 		Deque<int[]> queue = new LinkedList<int[]>();
 		mazeChars[player[0]][player[1]] = SokoMaze.SPACE_INSIDE_MAZE;

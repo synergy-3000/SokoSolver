@@ -65,9 +65,11 @@ public class SokoMaze implements Maze {
 	}
 	//change getDistances(..) so it doesn't keep allocating a new array each call : done
 	@Override
-	public void getDistances(int startRow, int startCol, int[][] distances) {
+	public void getDistances(int startRow, int startCol, int[][] distances, int[] topLeft) {
 		
 		int r,c;
+		topLeft[0] = startRow;
+		topLeft[1] = startCol;
 		
 		if(!inArrayBounds(startRow, startCol, distances)) {
 			errMsg = String.format("Invalid start position (%d,%d)", startRow,startCol);
@@ -102,6 +104,13 @@ public class SokoMaze implements Maze {
 				c = square.col + dx[i];
 				if (distances[r][c] == -1 && !isWall(r,c) && !isBox(r,c)) {
 					distances[r][c] = distances[square.row][square.col] + 1;
+					if ( (r < topLeft[0]) ||  ((r == topLeft[0]) && (c < topLeft[1]))) {
+						topLeft[0] = r;
+						topLeft[1] = c;
+					}
+					//topLeft[0] = r <
+					//int a = (r < topLeft[0]) ? (topLeft[0] = r; topLeft[1] = c) :  (r == topLeft[1]) ? 5 : 3;
+					
 					queue.add(getCoord(r,c));
 				}
 			}
@@ -131,7 +140,6 @@ public class SokoMaze implements Maze {
 			}
 		});
 	}
-
 	private boolean inArrayBounds(int startRow, int startCol, int[][] distances) {
 		return (startRow < distances.length && startCol < distances[startRow].length);
 	}
