@@ -7,7 +7,8 @@ import gui.Direction;
 /**
  * The GraphCreator class is only used by SokoDeadPositionFinder for finding the Dead Positions in the maze.
  * It was a first attempt and in hindsight it is not needed. All the functionality can be put in SokoDeadPositionFinder
- * TODO Modify SokoDeadPositionFinder to not need a Graph or GraphCreator and delete GraphCreator
+ * Modify SokoDeadPositionFinder to not need a Graph or GraphCreator and delete GraphCreator : done implemented DeadPositionFinder2 
+ * and DeadPositionFinder3.
  * 
  * @author zhipinghe
  *
