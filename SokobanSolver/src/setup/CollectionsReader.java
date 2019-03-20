@@ -45,6 +45,7 @@ public class CollectionsReader {
 		BufferedReader d;
 		ArrayList<MazeState> coll = new ArrayList<MazeState>();
 		
+		
 		try {
 			d = new BufferedReader(new FileReader(file));
 			Stream<String> lines = d.lines();
@@ -52,13 +53,15 @@ public class CollectionsReader {
 			//lines.
 			strFiltered.forEachOrdered(new Consumer<String>() {
 				boolean newMaze = true;
+				int idxTitle;
 				
 				@Override
 				public void accept(String t) {
-					if (t.indexOf("Title: Level") >= 0) {
+					if ((idxTitle = t.indexOf("Title: Level")) >= 0) {
 						List<char[]> maze = rows.subList(rowBegin[nMazes], nRows);
 						System.out.printf("Maze %d ", nMazes);
 						MazeState ms = Maze.parseMazeChars(maze.toArray(new char[maze.size()][]));
+						ms.title = t.substring(idxTitle + "Title: ".length());
 						coll.add(ms);
 						System.out.println(ms);
 						nMazes++;

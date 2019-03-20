@@ -26,6 +26,7 @@ public class MazeState {
 	public char[][] mazeChars; // The maze with walls etc. Not necessarily rectangular.
 	public long numStates;
 	public int numSpaces;
+	public String title;
 
 	MazeState(int[] player, int[][] stoneLocs, int numStones, int numRows, int numCols, int[][] goalLocs,
 			char[][] mazeChars, long numStates, int numSpaces) {
@@ -46,7 +47,7 @@ public class MazeState {
 	public String toString() {
 
 		String outStr = "MazeState:\n";
-		outStr += String.format("# of rows %d # of cols %d # of stones %d # of spaces %d # of states %d", numRows,
+		outStr += String.format("Title: %s # of rows %d # of cols %d # of stones %d # of spaces %d # of states %d", title, numRows,
 				numCols, numStones, numSpaces, numStates);
 		outStr += "\n";
 		// DEBUG check that stoneLocs[][] and goalLocs[][] are correct

@@ -21,6 +21,9 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 import setup.CollectionsReader;
 import setup.Graph;
@@ -38,13 +41,14 @@ import solver.DeadPositionFinder3;
 //TODO Improve player graphic for UP & DOWN pushes
 //TODO Add name of maze collection and Level in stats label 
 //TODO Paint squares outside maze in dark blue?
-//TODO Add "Show Grid" checkbox menu item under "Preferences" menu
+//Add "Show Grid" checkbox menu item under "Preferences" menu : done
 //TODO update ReadMe file in my repository on GitHUb
 //Get a local version of java api doc : done
 //TODO Investigate lambda expressions
-//TODO Add "Show Available Pushes" check box item under "Preferences" Menu
+//Add "Show Available Pushes" check box item under "Preferences" Menu : done
 //TODO Make a distribution, jar file ?, of java project 
-//TODO Show total number of pushes 
+//Show total number of pushes : done
+//TODO Add 'Next' menu item
 //TODO Change options after solving a maze to Previous, Start Again, Quit
 //TODO Rename Git repository from SokoSolver to ZSokoban or Sokoban
 //   ... create a big mazeChars[][] and record the start and finish row in mazeChars[][] for each maze.
@@ -58,6 +62,7 @@ public class Controller implements KeyListener {
 	Canvas canvas;
 	Person person;
 	JLabel lblStats;
+	JLabel lblTest;
 	
 	GraphicObj wall;
 	GraphicObj goal;
@@ -99,6 +104,9 @@ public class Controller implements KeyListener {
 	private DeadPositionFinder finder;
 	private int nMoves = 0;
 	private int[] topLeft;
+	private boolean showPushes = true;
+	private boolean showGrid = true;
+	private Rectangle pnlBounds;
 	
 	public static Controller getInstance() {
 		if (instance == null) {
@@ -135,9 +143,9 @@ public class Controller implements KeyListener {
 		// Frame 
         frame = new JFrame("ZSokoban");
 		
-		File file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
+		//File file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
 		//File file = new File("/Users/zhipinghe/Desktop/SokobanMaze3.txt");
-        //File file = new File("/Users/zhipinghe/Desktop/ThreeSokoMazes.txt");
+        File file = new File("/Users/zhipinghe/Desktop/ThreeSokoMazes.txt");
 		mazeStates = new CollectionsReader().readCollection(file);
 		maze = SokoMaze.getInstance(mazeStates.get(0));
 		currMaze = 0;
@@ -158,27 +166,39 @@ public class Controller implements KeyListener {
                 BoxLayout.PAGE_AXIS));
 		container.add(panel);
 		
+		// Add bottom labels to panel
+		JPanel aPanel = new JPanel();
+		lblTest = new JLabel("This is a test");
 		lblStats = new JLabel();
 		//System.out.println("JLabel font size: " + lblStats.getFont().getSize());
 		lblStats.setFont(lblStats.getFont().deriveFont(Font.BOLD));
-		updateLabel();
-		container.add(lblStats);
+		aPanel.add(lblStats);
+		aPanel.add(lblTest);
+		container.add(aPanel);
+		//container.add(lblStats);
 		
 		//Align the left edges of the components.
 		panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lblStats.setAlignmentX(Component.LEFT_ALIGNMENT); //redundant
+		//lblStats.setAlignmentX(Component.LEFT_ALIGNMENT); //redundant
+		aPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		initNewMaze(maze);
         frame.setJMenuBar(sokoMenu.createMenuBar());
         frame.addKeyListener(this);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
         frame.pack();
         frame.setLocationRelativeTo(null);
-        //frame.setVisible(true);
         
+        updateLabel();
+        //frame.setVisible(true);
+        //lblStats.setHorizontalAlignment(SwingConstants.TRAILING);
+		//lblStats.setHorizontalTextPosition(SwingConstants.TRAILING);
 		
 	}
 	private void updateLabel() {
-		lblStats.setText("Pushes " + nPushes + " Moves " + nMoves);
+		System.out.println("currMaze: " + currMaze);
+		lblStats.setText("Pushes " + nPushes + " Moves " + nMoves + " " + mazeStates.get(currMaze).title);
+		//lblStats.setHorizontalAlignment(SwingConstants.LEADING);
+		//lblTest.setHorizontalAlignment(SwingConstants.TRAILING);
 	}
 	private void initNewMaze(Maze newMaze) {
 		
@@ -239,8 +259,9 @@ public class Controller implements KeyListener {
         //add controller as keylistener : done
         //get player pushes and player moves : done
         canvas.setNewMaze(newMaze, cSize);
-        
+        pnlBounds = new Rectangle(50,50,cSize * nCols, cSize * nRows);
         panel.setPreferredSize(new Dimension(cSize * nCols, cSize * nRows));
+        //frame.setBounds(pnlBounds);
         System.out.printf("panel.setPreferredSize() cSize:%d nCols:%d nRows:%d\n",cSize, nCols, nRows);
 	}
 	
@@ -371,6 +392,7 @@ public class Controller implements KeyListener {
 		return (currMaze < (mazeStates.size()-1));
 	}
 	private void setNewMaze(MazeState newMs) {
+		updateLabel();
 		history.clear();
 		current = 0;
 		undoEnabled = false;
@@ -394,13 +416,22 @@ public class Controller implements KeyListener {
 		
 		
 		
-		frame.setVisible(false);
+		//frame.setVisible(false);
 		frame.pack();
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
+		//frame.invalidate();
+		//frame.setLocation(10, 10);
+		
+		SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+            	
+            	//frame.setVisible(true);
+            	frame.setLocationRelativeTo(null);
+            }
+        });
+		//frame.setVisible(true);
 	}
 	private void nextMaze() {
-		currMaze = (current + 1) % mazeStates.size();
+		currMaze = (currMaze + 1) % mazeStates.size();
 		setNewMaze(mazeStates.get(currMaze));
 	}
 	private void updateReachable() {
@@ -409,7 +440,7 @@ public class Controller implements KeyListener {
 	}
 
 	private void solved() {
-		
+		//frame.setVisible(false);
 		//Custom button text
 		Object[] options = {"Quit",
 		                    "Next",
@@ -429,6 +460,7 @@ public class Controller implements KeyListener {
 		case JOptionPane.NO_OPTION:
 			//Check if its the last maze so 'Next' should be disabled : Now 'Next' cycles to first maze after last maze.
 			//JOptionPane.showMessageDialog(frame, "Not implemented yet.");
+			
 			nextMaze();
 			break;
 		case JOptionPane.CANCEL_OPTION:
@@ -513,6 +545,10 @@ public class Controller implements KeyListener {
 		}
 		panel.repaint(panel.getBounds());
 	}
+	public void showPushes(boolean show) {
+		showPushes = show;
+		panel.repaint(panel.getBounds());
+	}
 	/* Start again from the beginning */
 	//implement reset() : completed
 	public void reset() {
@@ -537,7 +573,7 @@ public class Controller implements KeyListener {
 			stone = stoneOnGoal;
 		}
 		else {
-			if (GraphCreator.getGraphCreator().getPushableDirections(row, col, canPush) > 0) {
+			if (showPushes  && (GraphCreator.getGraphCreator().getPushableDirections(row, col, canPush) > 0)) {
 				stone = stonePushable;
 				stone.setPushes(canPush);
 			}
@@ -546,6 +582,13 @@ public class Controller implements KeyListener {
 			}
 		}
 		return stone;
+	}
+	public void showGrid(boolean b) {
+		showGrid  = b;
+		panel.repaint(panel.getBounds());
+	}
+	public boolean getShowGrid() {
+		return showGrid;
 	}
 }
 class EmptySquare extends AbstractGraphicObj {

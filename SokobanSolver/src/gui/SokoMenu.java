@@ -129,6 +129,30 @@ public class SokoMenu {
         	
         });
         menu.add(cbMenuItem);
+        
+        cbMenuItem = new JCheckBoxMenuItem("Show Available Pushes");
+		cbMenuItem.setSelected(true);
+        cbMenuItem.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				Controller.getInstance().showPushes(e.getStateChange() == ItemEvent.SELECTED);
+			}
+        	
+        });
+        menu.add(cbMenuItem);
+        
+        cbMenuItem = new JCheckBoxMenuItem("Show Grid");
+		cbMenuItem.setSelected(true);
+        cbMenuItem.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				Controller.getInstance().showGrid(e.getStateChange() == ItemEvent.SELECTED);
+			}
+        	
+        });
+        menu.add(cbMenuItem);
 		menuBar.add(menu);
 
 		return menuBar;
