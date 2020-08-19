@@ -93,6 +93,7 @@ public enum PlayerMove implements Cmd {
 	public String toString() {
 		String outStr;
 		
+		/* Test comment */
 		switch(this) {
 		case UP:
 			outStr = "UP";
