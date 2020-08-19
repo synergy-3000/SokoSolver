@@ -1,0 +1,61 @@
+Original
+
+Collection: Original
+Author of levels: Thinking Rabbit
+Date: 1988
+
+-----------------------------------------------------------------------
+
+This collection was downloaded from:
+"Sokoban. The beautiful world of remodels"
+http://sokoban-jd.blogspot.com/
+
+-----------------------------------------------------------------------
+
+######
+#. $ #
+#@   #
+#    #
+######
+
+Title: Level 0
+
+    #####
+    #   #
+    #$  #
+  ###  $##
+  #  $ $ #
+### # ## #   #######
+#   # ## #####  .. #
+# $  $          .. #
+##### ### #@##  .. #
+    #     ##########
+    #######
+Author: Thinking Rabbit
+Title: Level 1
+
+############
+#..  #     ###
+#..  # $  $  #
+#..  #$####  #
+#..    @ ##  #
+#..  # #  $ ##
+###### ##$ $ #
+  # $  $ $ $ #
+  #    #     #
+  ############
+Author: Thinking Rabbit
+Title: Level 2
+
+        ########
+        #     @#
+        # $#$ ##
+        # $  $#
+        ##$ $ #
+######### $ # ###
+#....  ## $  $  #
+##...    $  $   #
+#....  ##########
+########
+Author: Thinking Rabbit
+Title: Level 3

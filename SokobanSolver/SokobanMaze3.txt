@@ -1,0 +1,16 @@
+A Sokoban Maze with two pushes unreachable and two reachable 
+      #######
+     #     ##
+      #     #
+      ####  #
+         # ##
+         # #
+#######  # #
+##    #### ########
+###    $@         # 
+########## ## ##### 
+         #.## #
+         #    #
+         ######
+Title: Level 1
+  

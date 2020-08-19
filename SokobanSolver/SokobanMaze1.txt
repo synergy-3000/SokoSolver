@@ -1,0 +1,13 @@
+A Sokoban Maze from Pushbox app General Level 1 
+       ####
+  ###### .#
+###       #
+#  $$ # ..#
+# $  #  .##
+#  $$# #.###
+###  #     #
+  #    # # #
+  ##### @  #
+      #   ##
+      ######
+Title: Level 1
