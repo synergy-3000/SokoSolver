@@ -35,7 +35,7 @@ class GraphCreatorTest {
 	void testCreatePushGraph() {
 		file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
 		//file = new File("/Users/zhipinghe/Desktop/SokobanMaze3.txt");
-		mazeStates = new CollectionsReader().readCollection(file);
+		mazeStates = CollectionsReader.getInstance().readCollection(file);
 		maze = SokoMaze.getInstance(mazeStates.get(0));
 		GraphCreator gc = GraphCreator.getGraphCreator();
 		gc.createPushGraph(maze);

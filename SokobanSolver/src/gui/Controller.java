@@ -145,8 +145,8 @@ public class Controller implements KeyListener {
 		
 		//File file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
 		//File file = new File("/Users/zhipinghe/Desktop/SokobanMaze3.txt");
-        File file = new File("ThreeSokoMazes.txt");
-		mazeStates = new CollectionsReader().readCollection(file);
+        //File file = new File("ThreeSokoMazes.txt");
+		mazeStates = CollectionsReader.getInstance().getDefault();
 		maze = SokoMaze.getInstance(mazeStates.get(0));
 		currMaze = 0;
 		gc = GraphCreator.getGraphCreator();

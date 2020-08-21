@@ -42,7 +42,7 @@ class TestSokoDeadPositionFinder {
 	void testGetAllDeadPositions() {
 		
 		file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
-		mazeStates = new CollectionsReader().readCollection(file);
+		mazeStates = CollectionsReader.getInstance().readCollection(file);
 		maze = SokoMaze.getInstance(mazeStates.get(0));
 		GraphCreator gc = GraphCreator.getGraphCreator();
 		Graph graph = gc.createPushGraph(maze);
@@ -62,7 +62,7 @@ class TestSokoDeadPositionFinder {
 	void testGetPathToGoal() {
 		//file = new File("/Users/zhipinghe/Desktop/SokobanMaze2.txt");
 		file = new File("/Users/zhipinghe/Desktop/SokobanMaze1.txt");
-		mazeStates = new CollectionsReader().readCollection(file);
+		mazeStates = CollectionsReader.getInstance().readCollection(file);
 		maze = SokoMaze.getInstance(mazeStates.get(0));
 		GraphCreator gc = GraphCreator.getGraphCreator();
 		Graph graph = gc.createPushGraph(maze);

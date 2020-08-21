@@ -27,6 +27,7 @@ public class MazeState {
 	public long numStates;
 	public int numSpaces;
 	public String title;
+	
 
 	MazeState(int[] player, int[][] stoneLocs, int numStones, int numRows, int numCols, int[][] goalLocs,
 			char[][] mazeChars, long numStates, int numSpaces) {
@@ -41,7 +42,6 @@ public class MazeState {
 		this.numStates = numStates;
 		this.numSpaces = numSpaces;
 	}
-
 	// # rows, # cols, # spaces # states
 	@Override
 	public String toString() {
@@ -60,5 +60,8 @@ public class MazeState {
 			outStr += mazeChars[goal[0]][goal[1]] + "\n";
 		}*/
 		return outStr;
+	}
+	public static MazeState getDefault() {
+		return null;
 	}
 }

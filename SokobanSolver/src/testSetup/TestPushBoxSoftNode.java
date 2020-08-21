@@ -34,7 +34,7 @@ class TestPushBoxSoftNode {
 	@Test
 	void testVisit() {
 		file = new File("/Users/zhipinghe/Desktop/SokobanMaze3.txt");
-		mazeStates = new CollectionsReader().readCollection(file);
+		mazeStates = CollectionsReader.getInstance().readCollection(file);
 		maze = SokoMaze.getInstance(mazeStates.get(0));
 		//file = new File("/Users/zhipinghe/Desktop/SokobanMaze2.txt");
 		

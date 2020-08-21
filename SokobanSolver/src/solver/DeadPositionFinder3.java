@@ -21,6 +21,8 @@ import setup.SokoMaze;
  */
 public class DeadPositionFinder3 implements DeadPositionFinder {
 	
+	Maze oldMaze = null;
+	
 	HashSet<Node> visited;
 	HashMap<Node, Node> parent;
 	
@@ -65,6 +67,7 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 		nodes = new Node[SokoMaze.MAX_SPACES][4];
 		nNodes = new int[SokoMaze.MAX_SPACES];
 		Arrays.fill(nNodes, 0);
+		
 	}
 	/**
 	 * Returns the index of the squares that are dead positions. i.e A box placed at that square cannot be
@@ -72,6 +75,7 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 	 */
 	@Override
 	public int[] getDeadPositions(Graph graph, Maze maze) {
+		reset();
 		
 		boolean found;
 		int nDead = 0;
@@ -113,7 +117,7 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 					//maze.setEmptyAt(r, c);
 					
 					// Find a square around the box.
-					//TODO Do we need to call getPathToGoal(...) for every empty square around the box
+					//TODO Do we need to call getPathToGoal(...) for every empty square around the box?
 					for (int j=0; j<4 && !found; j++) {
 						pRow = r + dy[j];
 						pCol = c + dx[j];
@@ -132,9 +136,40 @@ public class DeadPositionFinder3 implements DeadPositionFinder {
 		for (int[] coord : boxLocs) {
 			maze.setBoxAt(coord[0], coord[1]);
 		}
+		System.out.println(nDead + " dead positions: " + Arrays.toString(dead));
 		return Arrays.copyOf(dead, nDead); 
 	}
+	private void reset() {
+		visited.clear();
+		parent.clear();
+		
+		for (int r=0; r<SokoMaze.MAX_ROWS; r++) {
+			Arrays.fill(distances[r], 0);
+			Arrays.fill(index[r], 0);
+		}
+		Arrays.fill(row, 0);
+		Arrays.fill(col, 0);
+		Arrays.fill(dead,0);
+		Arrays.fill(nNodes, 0);
+		
+		Arrays.fill(to, 0);
+		Arrays.fill(oppTo, 0);
+		Arrays.fill(coord, 0);
+		Arrays.fill(canReach, false);
+		Arrays.fill(coord2, 0);
+		Arrays.fill(boxRC, 0);
+		Arrays.fill(pRC, 0);
+		for (Node[] n : nodes) {
+			Arrays.fill(n, null);
+		}
+		
+	}
 	private int[] getPathToGoal(Maze maze, int boxR, int boxC, boolean[] isGoalNode, int pRow, int pCol) {
+		/*
+		 * int emptycount = 0; for (int r = 0; r < maze.numRows(); r++) { for (int c=0;
+		 * c<maze.numCols(); c++) { emptycount += maze.isEmpty(r, c) ? 1 : 0; } }
+		 * System.out.println("getPathToGoal() maze empty count = " + emptycount);
+		 */
 		
 		boxRC[0] = boxR;
 		boxRC[1] = boxC;

@@ -48,6 +48,24 @@ public class SokoMaze implements Maze {
 	int[] dx = {-1, 0,0,1};
 	int[] dy = { 0,-1,1,0};
 
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || !(obj instanceof SokoMaze)) return false;
+		
+		SokoMaze other = (SokoMaze) obj;
+		char[][] otherChars = other.getChars();
+		
+		if (otherChars.length != mazeChars.length) return false;
+		
+		boolean ret = true;
+		for (int i=0; ret == true && i<mazeChars.length; i++) {
+			ret = Arrays.equals(mazeChars[i], otherChars[i]);
+		}
+		return ret;
+	}
+	public char[][] getChars() {
+		return  mazeChars;
+	}
 	private Coord[][] coords; 
 	
 	public static SokoMaze getInstance(MazeState initialState) {
@@ -181,6 +199,13 @@ public class SokoMaze implements Maze {
 	}
 
 	@Override
+	public String toString() {
+		int nGoals = goalLocs.length;
+		int nStones = stoneLocs.length;
+		
+		return super.toString();
+	}
+	@Override
 	/* Returns row and column location of player
 	 * (non-Javadoc)
 	 * @see setup.Maze#getPlayerLocation()
@@ -244,7 +269,7 @@ public class SokoMaze implements Maze {
 				isGoalNode[id] = true;
 			}
 		// Debug print isGoalNode
-		Utils.printArray(isGoalNode, "isGoalNode", isGoalNode.length);
+		//Utils.printArray(isGoalNode, "isGoalNode", isGoalNode.length);
 	}
 	@Override
 	/* Return array true if node id = goal node

@@ -52,7 +52,8 @@ class TestDeadPositionFinder2 {
 			
 		}*/
 		File file = new File("/Users/zhipinghe/Desktop/SokobanOriginalLevels.txt");
-		List<MazeState> mstates = new CollectionsReader().readCollection(file);
+		//Maze maze = Controller.getInstance().getMaze();
+		List<MazeState> mstates = CollectionsReader.getInstance().readCollection(file);
 		for (MazeState ms : mstates) {
 			maze.setNewMaze(ms);
 			dpf.getDeadPositions(null, maze);

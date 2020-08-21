@@ -79,6 +79,9 @@ public interface Maze {
 				// inside the maze with a wall as a boundary
 				r = square[0] + dy[i];
 				c= square[1] + dx[i];
+				//System.out.println(String.format("(r,c):(%d,%d)",r,c));
+				//System.out.println("square[]: " + Arrays.toString(square));
+				
 				ch = mazeChars[r][c];
 				if (!visited[r][c] && (ch != SokoMaze.WALL)) {
 					
@@ -126,7 +129,8 @@ public interface Maze {
 	}
 	private static long nCr(int n, int r) {
 		long prod = 1;
-	    for (int i=1; i<=r; i++) {
+		int r2 = Math.min(r, n-r);
+	    for (int i=1; i<=r2; i++) {
 	    	prod *= n+1-i;
 	    	prod /= i;
 	    }
